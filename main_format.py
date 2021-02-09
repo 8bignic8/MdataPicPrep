@@ -161,7 +161,7 @@ print(xaxis)
 yaxis = int(input('Y Patch size HDR HR [default:320px]: ') or "320")
 print(yaxis)
 #user can choose if the pacht-pictures should be in YU-V or RGB
-youWantYUV = input('Do you want to concert to yuv default: yes') or 'yes'
+youWantYUV = input('Do you want to convert to yuv default: yes') or 'yes'
 #user can coose in wich folder the .mat file is stored
 savein = input('Should patches be saved in .mat file type: (m) oder should ist be saved as pictures (p) or saved as mat and .hdr/.png type: (mp), [default: p] ') or 'p'      
 print(savein)
