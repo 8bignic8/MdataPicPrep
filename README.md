@@ -1,7 +1,17 @@
 # MdataPicPrep
 
-This is a python program for data preperation. 
-You can outputs Matlap files and/or .hdr and .png pictures of the same picture patch.
+This is a python program for picture data preperation. 
+
+It cuts the picture file in the size you want. Than formats it how you want it and than saves it in:
+
+--> .mat Matlap files 
+and/or 
+-->.hdr (TO DO dynamic Format)..... HDR pictures 
+and/or
+-->.png (TO DO dynamic Format)..... SDR pictures
+
+as you wish. 
+
 
 I would recomend installing the python managment program anaconda with
 
@@ -10,11 +20,11 @@ I would recomend installing the python managment program anaconda with
 more info:
 https://pypi.org/project/conda/
 
-You should install the requirements.txt because the program imports a lot of packages not preinstalled in python3
+and than install the requirements.txt, because the program imports a lot of packages not preinstalled in python3 library
 
-just type 
+to add all the librarys type 
 
-pip install -r requirements.txt 
+pip install -r requirements.txt (TO DO add requirements.txt)
 
 Options to run the program:
 
@@ -25,7 +35,7 @@ If you want to use MdataPicPrep with jupyter you can copy it and just start it.
 
 ====> python3 main_format.py 
 
-and answer the questions
+and answer all the questions and enjoy :).
 
 If you want to contribute or if you find a mistake let me know by contacting me or opeing an issue.
 
