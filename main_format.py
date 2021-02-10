@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[1]:
+
+
 import h5py as h5
 import hdf5storage
 import numpy as np
@@ -13,6 +16,10 @@ import time
 import argparse
 from IPython.display import Image
 
+
+# In[2]:
+
+
 #Read Picture and return it
 
 def readThePicture(picturepath):
@@ -22,6 +29,10 @@ def readThePicture(picturepath):
     #imageio.plugins.freeimage.download()
     #img=imageio.imread(picturepath) #liest Bild von picturepath
     return(img) #returns picture
+
+
+# In[3]:
+
 
 def tMO(file,name): #tonemapping the file
     try:
@@ -38,6 +49,10 @@ def tMO(file,name): #tonemapping the file
     ldr = tom.process(file)
     return ldr
 
+
+# In[4]:
+
+
 def convert(img, target_type_min, target_type_max): # converts the input array to a target type with the bounderys given
     imin = img.min()
     imax = img.max()
@@ -46,6 +61,10 @@ def convert(img, target_type_min, target_type_max): # converts the input array t
     b = target_type_max - a * imax
     new_img = (a * img + b)
     return new_img
+
+
+# In[5]:
+
 
 def savePic(picture,fileName,extention,outPath): #saves the given array as a pictures to the given output path
     outPath = outPath+fileName+'.'+extention
@@ -59,12 +78,20 @@ def savePic(picture,fileName,extention,outPath): #saves the given array as a pic
         print('Failed while saving picture: '+fileName+' to '+ outPath+' sorry :(')
         print('--------------------')
 
+
+# In[6]:
+
+
 def cutPatch(begX,begY,endX,endY,picyx):#cuts out a array of a given array
     try: 
         picyx = picyx[begY:endY,begX:endX] #format y,start:End | x,start:End
     except:
         print('FormatMaking Failed')
     return picyx #returns a small part of the pic file
+
+
+# In[7]:
+
 
 def Randtone_map():
         #a random tonemapping is returned
@@ -82,6 +109,10 @@ def Randtone_map():
         except:
             print('there was an tmo Error')
 #ToDo Output in CSV to later analize
+
+
+# In[8]:
+
 
 def totalpatchespossible(path,amountOfPictures,extention,px,py,tokonvPic): #calculates the amount of total possible patches of the path you picked 
     arraysize = 0 #zero the output
@@ -101,6 +132,10 @@ def totalpatchespossible(path,amountOfPictures,extention,px,py,tokonvPic): #calc
     print('All patches will be: '+str(arraysize))
     return arraysize         
 
+
+# In[9]:
+
+
 def patchesxy(inputpic,px,py): #calculates how often the array can be devided by px in x and py in y
     arraysize = []
     try:
@@ -110,6 +145,11 @@ def patchesxy(inputpic,px,py): #calculates how often the array can be devided by
     except:
         print('fail calc x and y')
     return arraysize
+        
+
+
+# In[10]:
+
 
 def resizePic(inputpic,factor): #reszizing the inputpic picture keeping the information but scaling it down
     y = int((inputpic.shape[0])/factor) #multiply the Factor
@@ -117,19 +157,36 @@ def resizePic(inputpic,factor): #reszizing the inputpic picture keeping the info
     pic = cv2.resize(inputpic,(x,y)) 
     return pic
 
+
+# In[11]:
+
+
 def RGBtoYUV(img): #changeing the img picture from RGB- to YUV-Color space
     pictureYUV = cv2.cvtColor(img, cv2.COLOR_RGB2YUV)
     return pictureYUV
 
+
+# In[12]:
+
+
 def YUVtoRGB(img):#changeing the img picture from YUV- to RGB-Color space
     pictureRGB = cv2.cvtColor(img, cv2.COLOR_YUV2RGB)
     return pictureRGB
+
+
+# In[13]:
+
 
 #TO Finish
 def inputargs():#todo finish
     parser = argparse.ArgumentParser()
     parser.add_argument('--foo', help='foo help')
     args = parser.parse_args()
+    
+
+
+# In[19]:
+
 
 #---- input section
 #TO DO add parser
@@ -167,6 +224,7 @@ savein = input('Should patches be saved in .mat file type: (m) oder should ist b
 print(savein)
 unit_varSdr = (np.float32)
 unit_varHdr = (np.float32)
+testing = input('Is the dataset for testing purposes? default: no') or 'no'
 if (savein == 'm' or savein == 'mp'):
     #user can choose the name for the .mat file
     matName = input('Input Mat name default: data ') or 'data'
@@ -186,11 +244,15 @@ if (savein == 'p' or savein == 'mp'): #if user wants to output pates in picters 
     outPathhdr = input('spezify the output path of sdr pictures [default: ./hdrOut/] ') or './hdrOut/' #set the picture save path if it is choosen
     if not os.path.exists(outPathhdr):
         os.mkdir(outPathhdr)
-#TO DO if user wants the files to all have the same name  
+    #TO DO if files should all have the same name or original Filename  
+
+
+# In[21]:
+
 
 ### write pic to .mat and/or .hdr/.png
 
-#Just for general information original data structure JSI-Gan train files
+#Just for general information Data Structure JSI-Gan
 ###['SDR_data'][79][79][2][39839] dtype=uint8 Strukture .mat Data
 ###['HDR_data'][79][79][2][39839] dtype=uint16 Strukture .mat Data
     
@@ -205,7 +267,7 @@ xldr = int(xaxis/factor) #calculates the samler array axes x
 yldr = int(yaxis/factor)#calculates the samler array axes y
 sdrarray = np.zeros((xldr,yldr,3,allpatches)) # creates the np array for the LR SDR array with new axes
 sdrarray = sdrarray.astype(unit_varSdr)#changes the type of np array to uint8
-#Arrays are defined in [x,y,RGB,amountOfallPatchesPossible]
+#Arrays are defined in [amountOfallPatchesPossible,x,y,RGB]
 
 print('Processing start')
 tokonvPic= (amountOfPictures-tokonvPic)# the amount of pictures cut into pachtes is calculated
@@ -273,33 +335,71 @@ while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to 
         print('Error with data maybe not an .hdr file continuing...')  
     amountOfPictures = amountOfPictures - 1 #counts down current picture pos
 if (savein == 'mp' or savein == 'm' ): #only makes a Matlap File if wanted
-    try:                  
+    try:
+        matLabel = 'HDR_data'
+        if(testing != 'no'):
+            matLabel = 'HDR_YUV'
         # Write TO HDR.Mat File
         h5.get_config().default_file_mode = 'a' #write enable
         matfilehdrdataHDR = {} # make a dictionary to store the MAT data in
-        print('HDR Matlab file will have the Format')
+        print('HDR Matlab file will have the format')
         print(hdrarray.shape)
-        matfilehdrdataHDR[u'HDR_data'] = hdrarray #save hdr array in that dictonary
+        matfilehdrdataHDR[u''+matLabel] = hdrarray #save hdr array in that dictonary
         print('Writing HDR_'+matName+'.mat File to: '+ matPath)
         hdf5storage.write(matfilehdrdataHDR, '.', matPath+'HDR_'+matName+'.mat', matlab_compatible=True) #output the .mat data file
-        print('Saved the HDR_data.mat File')
+        print('Saved the HDR .mat file')
 
         #####Writing SDR .mat 
         #Switches the first with the last array Field 
         matfilesdrdatasdr = {} # make a dictionary to store the MAT data in
-        print('HDR Matlab file will have the Format')
+        matLabel = 'SDR_data'
+        if(testing != 'no'):
+            matLabel = 'SDR_YUV'
+        print('SDR Matlab file will have the format')
         print(sdrarray.shape)
         matfilesdrdatasdr[u'SDR_data'] = sdrarray #save sdr array in that dictonary
         print('Writing SDR_'+matName+'.mat File to: '+ matPath)
         hdf5storage.write(matfilesdrdatasdr, '.', matPath+'SDR_'+matName+'.mat', matlab_compatible=True) #output the .mat data file
-        print('Saved the SDR_data.mat File')
+        print('Saved the SDR .mat file')
     except:
         print('error at writing matlab file sorry :(')
 
 print(str((time.time() - start_time)/60)+' Minutes') #outputs the time in minutes
 print('------------------------- Done --------------------')
 
-#Copy to run JSI-GAN go to https://github.com/JihyongOh/JSI-GAN and than:
-#python3 main.py --phase train --scale_factor 2 --train_data_path_LR_SDR ./SDR_data.mat --train_data_path_HR_HDR ./HDR_data.mat  --batch_size 8
+
+# In[ ]:
+
+
+#python3 main.py --phase train --scale_factor 2 --train_data_path_LR_SDR /SDR_data_.mat --train_data_path_HR_HDR /HDR_data_.mat --epoch 5 --batch_size 4
+
+
+# In[ ]:
+
+
+#python3 train.py --batch_size 100 -d ./hdrData -s ./pathToSaceChepoints 
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
 
 
