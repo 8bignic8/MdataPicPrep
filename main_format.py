@@ -63,12 +63,6 @@ def convert(img, target_type_min, target_type_max): # converts the input array t
     return new_img
 
 
-# In[ ]:
-
-
-
-
-
 # In[5]:
 
 
@@ -102,13 +96,13 @@ def cutPatch(begX,begY,endX,endY,picyx):#cuts out a array of a given array
 def Randtone_map():
         #a random tonemapping is returned
         rand = random.SystemRandom()
-        tmNumber = round((rand.randint(0, 30)/10)) # generates a random tonempaiing nuber 
+        tmNumber = round((rand.randint(0, 20)/10)) # generates a random tonempaiing nuber 
         try:
             if (tmNumber<=0):
                 return 'reinhard' #retruns the name of the tonemapper
             if (tmNumber==1):
                 return 'mantiuk'
-            if (tmNumber==2):
+            if (tmNumber>=2):
                 return 'drago'
            # if (tmNumber>=3):
             #    return 'linear'
@@ -191,7 +185,7 @@ def inputargs():#todo finish
     
 
 
-# In[21]:
+# In[29]:
 
 
 #---- input section
@@ -253,7 +247,7 @@ if (savein == 'p' or savein == 'mp'): #if user wants to output pates in picters 
     #TO DO if files should all have the same name or original Filename  
 
 
-# In[22]:
+# In[30]:
 
 
 ### write pic to .mat and/or .hdr/.png
@@ -307,7 +301,7 @@ while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to 
                     
                     patchLR = resizePic(patch,factor) #resize picture from Patch with the factor
                     tmoed = tMO(patchLR,tmo) #tonemap the resized patch with the before chosen Tone Mapping Operator
-                    print(tmoed)
+                    #print(tmoed)
                     patch_lrtm = tmoed
                     ####Color YUV Section
                     if (youWantYUV != 'no'): #if change to yuv
@@ -316,7 +310,7 @@ while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to 
                     ###Picture section
                     ### Pictures will be saved as 8bit .png with the picture beeing between 0- 255 uint8
                     ### and 16 bit .hdr with the picture beeing between 0- 2^16 float16
-                    print('HDR MAX')
+                    #print('HDR MAX')
                     if (savein == 'p' or savein == 'mp'): #save as picture if chosen
                         buildFilename = ((currentFile.split('.')[0])+'_'+str(allpatches-1))#builds output name 
                         # TODO Add a Input for the wanted out_format
@@ -333,8 +327,8 @@ while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to 
                             savePic(patch,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save
                             savePic(patch_lrtm,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
                     #### uint Section
-                    print('ABC_1')
-                    print(patch_lrtm)
+                    #print('ABC_1')
+                    #print(patch_lrtm)
                     #patch_lr = patch_lrtm/((2 ** 8)-1) # normalize between 0,1 in float 32
                     #print('patchMax')
                     #print(patch.max())
@@ -342,24 +336,24 @@ while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to 
                     if(unit_varHdr == np.uint16):
                         patch_lr = patch_lrtm * ((2 ** 8)-1) 
                         patch = patch * ((2 ** 10)-1) #HDR is changed so it fitts the unit16 OR UInt10?? format and can be compared
-                        print('HDR')
-                        print(patch.max())
-                        print(patch.min())
-                        print('LDR')
-                        print(patch_lr.max())
-                        print(patch_lr.min())
+                        #print('HDR')
+                        #print(patch.max())
+                        #print(patch.min())
+                        #print('LDR')
+                        #print(patch_lr.max())
+                        #print(patch_lr.min())
                         patch_lr = patch_lr.astype(unit_varSdr) #changes the data type in according to JSI Gan spec to uint8 for lr sdr
                         patch = patch.astype(unit_varHdr) #changes the data type in according to JSI Gan spec to uint16 for hr hdr
                     
                     ###writing array section 
                     p = (allpatches-1) #calcualte current patch position
                     try:
-                        print(patch_lr.shape)
+                        #print(patch_lr.shape)
                         sdrarray[:,:,:,p] = patch_lr # try Write the tmoed Patch to sdrarray at current patch position
                     except:
                         print('Error at SDR- Array Writing :..(')
                     try:
-                        print(patch.shape)
+                        #print(patch.shape)
                         hdrarray[:,:,:,p] = patch # try Write the hr hdr Patch to hdrarray at current patch position
                     except:
                         print('Error at HDR- Array Writing :..(')
@@ -415,18 +409,19 @@ print('------------------------- Done --------------------')
 #python3 main.py --phase train --scale_factor 2 --train_data_path_LR_SDR ./SDR_data.mat --train_data_path_HR_HDR ./HDR_data.mat --epoch 5 --batch_size 4
 
 
-# In[93]:
+# In[31]:
 
 
-#a = np.count_nonzero(sdrarray)
+### gives the amount of nuberst larger than 0 in percent
+#np.count_nonzero(ab)
+#(np.count_nonzero(sdrarray)/sdrarray.size)*100
 
 
-# In[94]:
+# In[32]:
 
 
-#np.count_nonzero(hdrarray)
-#hdrarray.any()
-#np.all(hdrarray)
+#np.count_nonzero(ab)
+#(np.count_nonzero(hdrarray)/hdrarray.size)*100
 
 
 # In[21]:
