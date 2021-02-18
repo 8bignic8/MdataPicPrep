@@ -14,7 +14,7 @@ import cv2
 import random
 import time
 import argparse
-from IPython.display import Image
+#from IPython.display import Image
 
 
 # In[2]:
@@ -24,7 +24,7 @@ from IPython.display import Image
 
 def readThePicture(picturepath):
     #  open ImageObject
-    img = cv2.imread(picturepath, cv2.IMREAD_UNCHANGED)
+    img = cv2.imread(picturepath, cv2.IMREAD_UNCHANGED)# | cv2.IMREAD_ANYCOLOR | cv2.IMREAD_ANYDEPTH)
     #old
     #imageio.plugins.freeimage.download()
     #img=imageio.imread(picturepath) #liest Bild von picturepath
@@ -42,8 +42,8 @@ def tMO(file,name): #tonemapping the file
             tom = cv2.createTonemapMantiuk()
         if (name == 'drago'):
             tom = cv2.createTonemapDrago()
-        if (name == 'linear'):
-            tom = cv2.createTonemap()
+       # if (name == 'linear'):
+        #    tom = cv2.createTonemap()
     except: 
         print('ToneMapping Error')
     ldr = tom.process(file)
@@ -57,10 +57,16 @@ def convert(img, target_type_min, target_type_max): # converts the input array t
     imin = img.min()
     imax = img.max()
     #print(imin)
-    a = (target_type_max - target_type_min) / (imax - imin)
+    a = (target_type_max - target_type_min) / (imax - imin) # generates a factor a to multiply with the img
     b = target_type_max - a * imax
     new_img = (a * img + b)
     return new_img
+
+
+# In[ ]:
+
+
+
 
 
 # In[5]:
@@ -68,12 +74,12 @@ def convert(img, target_type_min, target_type_max): # converts the input array t
 
 def savePic(picture,fileName,extention,outPath): #saves the given array as a pictures to the given output path
     outPath = outPath+fileName+'.'+extention
-    print(outPath)
     try:
         #old
         #imageio.imwrite(outPath,picture,format=extention)#extention'')#save the Data (path with name and file extention,PictureMatrix,format)
         #new
         cv2.imwrite(outPath,picture)
+        print(outPath+'<=== Writing')
     except:
         print('Failed while saving picture: '+fileName+' to '+ outPath+' sorry :(')
         print('--------------------')
@@ -96,7 +102,7 @@ def cutPatch(begX,begY,endX,endY,picyx):#cuts out a array of a given array
 def Randtone_map():
         #a random tonemapping is returned
         rand = random.SystemRandom()
-        tmNumber = round((rand.randint(0, 40)/10)) # generates a random tonempaiing nuber 
+        tmNumber = round((rand.randint(0, 30)/10)) # generates a random tonempaiing nuber 
         try:
             if (tmNumber<=0):
                 return 'reinhard' #retruns the name of the tonemapper
@@ -104,8 +110,8 @@ def Randtone_map():
                 return 'mantiuk'
             if (tmNumber==2):
                 return 'drago'
-            if (tmNumber>=3):
-                return 'linear'
+           # if (tmNumber>=3):
+            #    return 'linear'
         except:
             print('there was an tmo Error')
 #ToDo Output in CSV to later analize
@@ -185,7 +191,7 @@ def inputargs():#todo finish
     
 
 
-# In[19]:
+# In[21]:
 
 
 #---- input section
@@ -218,9 +224,9 @@ print(xaxis)
 yaxis = int(input('Y Patch size HDR HR [default:320px]: ') or "320")
 print(yaxis)
 #user can choose if the pacht-pictures should be in YU-V or RGB
-youWantYUV = input('Do you want to convert to yuv default: yes') or 'yes'
+youWantYUV = input('Do you want to convert to yuv default: no') or 'no'
 #user can coose in wich folder the .mat file is stored
-savein = input('Should patches be saved in .mat file type: (m) oder should ist be saved as pictures (p) or saved as mat and .hdr/.png type: (mp), [default: p] ') or 'p'      
+savein = input('Should patches be saved in .mat file type: (m) oder should ist be saved as pictures (p) or saved as mat and .hdr/.png type: (mp), [default: m] ') or 'm'      
 print(savein)
 unit_varSdr = (np.float32)
 unit_varHdr = (np.float32)
@@ -231,7 +237,7 @@ if (savein == 'm' or savein == 'mp'):
     matPath = input('Input Mat directory path: ./matOut/') or './matOut/'
     if not os.path.exists(matPath):
             os.mkdir(matPath)
-    jsi = input('Is it for the JSI-GAN? default: no') or 'no'
+    jsi = input('Is it for the JSI-GAN converion from float32 to uint8/16? default: no') or 'no'
     if (jsi != 'no'):
         unit_varSdr = (np.uint8)
         print('SDR .mat file will be uint8')
@@ -247,7 +253,7 @@ if (savein == 'p' or savein == 'mp'): #if user wants to output pates in picters 
     #TO DO if files should all have the same name or original Filename  
 
 
-# In[21]:
+# In[22]:
 
 
 ### write pic to .mat and/or .hdr/.png
@@ -269,7 +275,7 @@ sdrarray = np.zeros((xldr,yldr,3,allpatches)) # creates the np array for the LR 
 sdrarray = sdrarray.astype(unit_varSdr)#changes the type of np array to uint8
 #Arrays are defined in [amountOfallPatchesPossible,x,y,RGB]
 
-print('Processing start')
+print('Start processing...')
 tokonvPic= (amountOfPictures-tokonvPic)# the amount of pictures cut into pachtes is calculated
 allpatchesSave = allpatches #all pachtes are saved
 amountOfPictures = amountOfPictures - 1 # needs to count down because while counts to more than in amonut of Pictures
@@ -280,51 +286,84 @@ while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to 
             he = (path+str(currentFile))#gives the path and name with extention of the to process file
             print('processing the picture: '+he) #prints it to the user
             originalPicture = readThePicture(he) #reads the currentpicture and saves it
+            
+            print(originalPicture.max())
             begX = 1 #startingnumber in wich the cutting starts in X-axes
             endX = xaxis # sets current start pixel position at wich the cutting starts in X
             pxy=patchesxy(originalPicture,xaxis,yaxis) # gives back the length of the current picture (numx,numy) e.g. (3,2)
             px= pxy[0] #saves the max x pos in px
             py= pxy[1] #saves the max y pos in py
+            
             while (px >= begX): # cut until you are at the beginning of the picture X position
                 begY = 1 #startingnumber in wich the cutting starts in Y-axes
                 endY = yaxis # sets current start pixel position at wich the cutting starts in Y
                 x = (begX*xaxis)-xaxis #start patch position in x
+    
                 while (py>=begY): # cut until you are at the beginning of the picture Y position
+                    ### reading the picture and cutting section
                     y = (begY*yaxis)-yaxis #start patch position in y
                     patch = cutPatch(x,y,endX,endY,originalPicture) #make the patch and return it to the patch (floart64) array
                     tmo = Randtone_map() # returns a random name for the tonemapping Operator to use
+                    
                     patchLR = resizePic(patch,factor) #resize picture from Patch with the factor
-                    patch = patch/((2 ** 16)-1) # normalize between 0,1 a 16 bit HDR Picture
-                    patch = convert(patch,0,1)# normalize between 0,1
                     tmoed = tMO(patchLR,tmo) #tonemap the resized patch with the before chosen Tone Mapping Operator
-                    patch_lr = (tmoed/((2 ** 8)-1)) # normalize between 0,1 a 8 bit png picture
-                    patch_lr = convert(patch_lr,0,1)# normalize between 0,1
-                    #YUV needs to be after tonemaping, because the colors needed to be transormed accurate from HDR TO LDR and afterwards
-                    # with the toenmapping operator and afterwards transformed to YUV
-                    #both Pictures get transformed in 0,1 space to YUV
+                    print(tmoed)
+                    patch_lrtm = tmoed
+                    ####Color YUV Section
                     if (youWantYUV != 'no'): #if change to yuv
-                        patch_lr = RGBtoYUV(patch_lr) # changes the color space of lr sdr array
+                        patch_lrtm = RGBtoYUV(tmoed) # changes the color space of lr sdr array
                         patch = RGBtoYUV(patch) # changes the color space of hr hdr array
-                    patch_lr = patch_lr * ((2 ** 8)-1) # multiply by 255 so a png picture can be saved and it fits to the uint8 format                     
+                    ###Picture section
+                    ### Pictures will be saved as 8bit .png with the picture beeing between 0- 255 uint8
+                    ### and 16 bit .hdr with the picture beeing between 0- 2^16 float16
+                    print('HDR MAX')
                     if (savein == 'p' or savein == 'mp'): #save as picture if chosen
-                        buildFilename = (currentFile+'_'+str(allpatches-1))#builds output name 
-                        # TODO Add a Input for the wanted format
-                        #print('saving patch number: '+str(allpatches-1))
-                        savePic(patch,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save
-                        savePic(patch_lr,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
-                    p = (allpatches-1) #calcualte current patch position
+                        buildFilename = ((currentFile.split('.')[0])+'_'+str(allpatches-1))#builds output name 
+                        # TODO Add a Input for the wanted out_format
+                        if(testing != 'no'):
+                            spaceIndi = 'u','v','y' #orders the Name to the right place
+                            savePic((patch_lrtm[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture
+                            savePic((patch_lrtm[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture
+                            savePic((patch_lrtm[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture
+                            savePic((patch[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'hdr',outPathhdr)#saves final singel color channel Picture
+                            savePic((patch[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'hdr',outPathhdr)#saves final singel color channel Picture
+                            savePic((patch[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'hdr',outPathhdr)#saves final singel color channel Picture
+                            ###To DO make 16 bit PNG
+                        if(testing == 'no'):
+                            savePic(patch,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save
+                            savePic(patch_lrtm,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
+                    #### uint Section
+                    print('ABC_1')
+                    print(patch_lrtm)
+                    #patch_lr = patch_lrtm/((2 ** 8)-1) # normalize between 0,1 in float 32
+                    #print('patchMax')
+                    #print(patch.max())
+                    #patch = patch/((2 ** 16)-1) #convert(patch,0,1) #normalize between 0,1 in float 32
                     if(unit_varHdr == np.uint16):
-                        patch = patch * ((2 ** 16)-1) #HDR is changed so it fitts the unit10 format and can be compared
+                        patch_lr = patch_lrtm * ((2 ** 8)-1) 
+                        patch = patch * ((2 ** 10)-1) #HDR is changed so it fitts the unit16 OR UInt10?? format and can be compared
+                        print('HDR')
+                        print(patch.max())
+                        print(patch.min())
+                        print('LDR')
+                        print(patch_lr.max())
+                        print(patch_lr.min())
                         patch_lr = patch_lr.astype(unit_varSdr) #changes the data type in according to JSI Gan spec to uint8 for lr sdr
                         patch = patch.astype(unit_varHdr) #changes the data type in according to JSI Gan spec to uint16 for hr hdr
+                    
+                    ###writing array section 
+                    p = (allpatches-1) #calcualte current patch position
                     try:
+                        print(patch_lr.shape)
                         sdrarray[:,:,:,p] = patch_lr # try Write the tmoed Patch to sdrarray at current patch position
                     except:
                         print('Error at SDR- Array Writing :..(')
                     try:
+                        print(patch.shape)
                         hdrarray[:,:,:,p] = patch # try Write the hr hdr Patch to hdrarray at current patch position
                     except:
                         print('Error at HDR- Array Writing :..(')
+                        
                     begY = begY + 1 #Counts up from 1 to all possible cuts of the current picture in Y
                     endY = endY + yaxis #Counts up the position from endY in yaxis steps
                     allpatches = allpatches - 1 #Counts down all patches of all pictures to 0
@@ -339,6 +378,7 @@ if (savein == 'mp' or savein == 'm' ): #only makes a Matlap File if wanted
         matLabel = 'HDR_data'
         if(testing != 'no'):
             matLabel = 'HDR_YUV'
+            print('testdata')
         # Write TO HDR.Mat File
         h5.get_config().default_file_mode = 'a' #write enable
         matfilehdrdataHDR = {} # make a dictionary to store the MAT data in
@@ -355,9 +395,10 @@ if (savein == 'mp' or savein == 'm' ): #only makes a Matlap File if wanted
         matLabel = 'SDR_data'
         if(testing != 'no'):
             matLabel = 'SDR_YUV'
+            print('testdata')
         print('SDR Matlab file will have the format')
         print(sdrarray.shape)
-        matfilesdrdatasdr[u'SDR_data'] = sdrarray #save sdr array in that dictonary
+        matfilesdrdatasdr[u''+matLabel] = sdrarray #save sdr array in that dictonary
         print('Writing SDR_'+matName+'.mat File to: '+ matPath)
         hdf5storage.write(matfilesdrdatasdr, '.', matPath+'SDR_'+matName+'.mat', matlab_compatible=True) #output the .mat data file
         print('Saved the SDR .mat file')
@@ -368,38 +409,34 @@ print(str((time.time() - start_time)/60)+' Minutes') #outputs the time in minute
 print('------------------------- Done --------------------')
 
 
-# In[ ]:
+# In[41]:
 
 
-#python3 main.py --phase train --scale_factor 2 --train_data_path_LR_SDR /SDR_data_.mat --train_data_path_HR_HDR /HDR_data_.mat --epoch 5 --batch_size 4
+#python3 main.py --phase train --scale_factor 2 --train_data_path_LR_SDR ./SDR_data.mat --train_data_path_HR_HDR ./HDR_data.mat --epoch 5 --batch_size 4
 
 
-# In[ ]:
+# In[93]:
+
+
+#a = np.count_nonzero(sdrarray)
+
+
+# In[94]:
+
+
+#np.count_nonzero(hdrarray)
+#hdrarray.any()
+#np.all(hdrarray)
+
+
+# In[21]:
 
 
 #python3 train.py --batch_size 100 -d ./hdrData -s ./pathToSaceChepoints 
 
 
-# In[ ]:
+# In[20]:
 
 
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
+#python3 main.py --phase test_mat --scale_factor 2 --train_data_path_LR_SDR ./SDR_data.mat --train_data_path_HR_HDR ./HDR_data.mat --test_data_path_LR_SDR /home/nico/programm/MdataPicPrep/matOut/SDR_data.mat --test_data_path_HR_HDR /home/nico/programm/MdataPicPrep/matOut/HDR_data.mat --batch_size 4
 
