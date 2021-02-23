@@ -129,7 +129,7 @@ def totalpatchespossible(path,amountOfPictures,extention,px,py,tokonvPic): #calc
         except:
             print('fail count all patches')
         amountOfPictures = amountOfPictures - 1
-    print('All patches will be: '+str(arraysize))
+    print('There will be >> '+str(arraysize)+' << total patches')
     return arraysize         
 
 
@@ -185,7 +185,7 @@ def inputargs():#todo finish
     
 
 
-# In[29]:
+# In[17]:
 
 
 #---- input section
@@ -208,14 +208,14 @@ amountOfPictures = 0
 amountOfPictures = sum(1 for f in os.listdir(path) if f.endswith('.'+extention)) #summ all data ending with right extention
 print('There are: '+str(amountOfPictures)+' '+extention+' Pictures in the folder')
 #User can choose how many pictures should be cut in patches
-tokonvPic = int(input('how many Pictures do you want to cut into patches? default 2: ') or '2')
+tokonvPic = int(input('how many Pictures do you want to cut into patches? default 1: ') or '1')
 print(str(tokonvPic)+' pictures will be cut into patches')
 #scale factor for the low resolution is inputed
 factor = int(input('Scale factor for Ldr LR [default:2]: ') or "2")
 #asks for the px size of the high resolution pictures
-xaxis = int(input('X Patch size HDR HR [default:320px]: ') or "320")
+xaxis = int(input('X Patch size HDR HR [default:420px]: ') or "420")
 print(xaxis)
-yaxis = int(input('Y Patch size HDR HR [default:320px]: ') or "320")
+yaxis = int(input('Y Patch size HDR HR [default:420px]: ') or "420")
 print(yaxis)
 #user can choose if the pacht-pictures should be in YU-V or RGB
 youWantYUV = input('Do you want to convert to yuv default: no') or 'no'
@@ -224,7 +224,9 @@ savein = input('Should patches be saved in .mat file type: (m) oder should ist b
 print(savein)
 unit_varSdr = (np.float32)
 unit_varHdr = (np.float32)
-testing = input('Is the dataset for testing purposes? default: no') or 'no'
+testing = input('Is the dataset for testing purposes or do you want to split the output pictures in cromagan single png pictures? default: no') or 'no'
+if (savein == 'p' or savein == 'mp'):
+    hrImgOut = input('Should the hdr pictures have the format hdr(yes) or png 16bit(no)? default: no (png 16bit)') or 'no'
 if (savein == 'm' or savein == 'mp'):
     #user can choose the name for the .mat file
     matName = input('Input Mat name default: data ') or 'data'
@@ -247,7 +249,7 @@ if (savein == 'p' or savein == 'mp'): #if user wants to output pates in picters 
     #TO DO if files should all have the same name or original Filename  
 
 
-# In[30]:
+# In[18]:
 
 
 ### write pic to .mat and/or .hdr/.png
@@ -281,7 +283,7 @@ while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to 
             print('processing the picture: '+he) #prints it to the user
             originalPicture = readThePicture(he) #reads the currentpicture and saves it
             
-            print(originalPicture.max())
+            #print(originalPicture.max())
             begX = 1 #startingnumber in wich the cutting starts in X-axes
             endX = xaxis # sets current start pixel position at wich the cutting starts in X
             pxy=patchesxy(originalPicture,xaxis,yaxis) # gives back the length of the current picture (numx,numy) e.g. (3,2)
@@ -312,51 +314,70 @@ while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to 
                     ### and 16 bit .hdr with the picture beeing between 0- 2^16 float16
                     #print('HDR MAX')
                     if (savein == 'p' or savein == 'mp'): #save as picture if chosen
-                        buildFilename = ((currentFile.split('.')[0])+'_'+str(allpatches-1))#builds output name 
+                        #buildFilename = ((currentFile.split('.')[0])+'_'+str(allpatches-1))#builds output name 
+                        buildFilename = str(allpatches-1).zfill(6)# gives the filename only an number filled up with 6 zeros (mybe better if zeros from max allpatches)
                         # TODO Add a Input for the wanted out_format
+                        patch_lrtmp = patch_lrtm * ((2 ** 8)-1)
                         if(testing != 'no'):
                             spaceIndi = 'u','v','y' #orders the Name to the right place
-                            savePic((patch_lrtm[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture
-                            savePic((patch_lrtm[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture
-                            savePic((patch_lrtm[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture
-                            savePic((patch[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'hdr',outPathhdr)#saves final singel color channel Picture
-                            savePic((patch[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'hdr',outPathhdr)#saves final singel color channel Picture
-                            savePic((patch[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'hdr',outPathhdr)#saves final singel color channel Picture
+                            savePic((patch_lrtmp[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture
+                            savePic((patch_lrtmp[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture
+                            savePic((patch_lrtmp[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture
+                            
+                            ####Saveing the 16Bit HDR picturespatches
+                            if(hrImgOut !='no'):
+                                savePic((patch[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'hdr',outPathhdr)#saves final singel color channel Picture
+                                savePic((patch[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'hdr',outPathhdr)#saves final singel color channel Picture
+                                savePic((patch[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'hdr',outPathhdr)#saves final singel color channel Picture
+                            
+                            
+                            #Saveing the 16Bit PNG output picturepachtes
+                            if(hrImgOut == 'no'):
+                                patchbic = patch * ((2 ** 16)-1)
+                                patchbic = patchbic.astype(np.uint16)
+                                print('(HDR)-PNG is 16 bit')
+                                savePic((patchbic[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic((patchbic[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic((patchbic[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathhdr)#saves final singel color channel Picture
                             ###To DO make 16 bit PNG
                         if(testing == 'no'):
-                            savePic(patch,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save
-                            savePic(patch_lrtm,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
-                    #### uint Section
-                    #print('ABC_1')
-                    #print(patch_lrtm)
-                    #patch_lr = patch_lrtm/((2 ** 8)-1) # normalize between 0,1 in float 32
-                    #print('patchMax')
-                    #print(patch.max())
-                    #patch = patch/((2 ** 16)-1) #convert(patch,0,1) #normalize between 0,1 in float 32
+                            if(hrImgOut == 'no'):
+                                patchpic = patch * ((2 ** 16)-1)
+                                patchpic = patchpic.astype(np.uint16)
+                                savePic(patchpic,buildFilename,'png',outPathhdr)#change 'hdr' here for different HDR-picture save
+                            if(hrImgOut != 'no'):
+                                savePic(patch,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save    
+                            savePic(patch_lrtmp,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
+
                     if(unit_varHdr == np.uint16):
-                        patch_lr = patch_lrtm * ((2 ** 8)-1) 
-                        patch = patch * ((2 ** 10)-1) #HDR is changed so it fitts the unit16 OR UInt10?? format and can be compared
+                        patch_lrtm = patch_lrtm * ((2 ** 8)-1) 
+                        patch = patch * ((2 ** 16)-1) #HDR is changed so it fitts the unit16 format and can be compared
                         #print('HDR')
                         #print(patch.max())
                         #print(patch.min())
                         #print('LDR')
                         #print(patch_lr.max())
                         #print(patch_lr.min())
-                        patch_lr = patch_lr.astype(unit_varSdr) #changes the data type in according to JSI Gan spec to uint8 for lr sdr
+                        patch_lr = patch_lrtm.astype(unit_varSdr) #changes the data type in according to JSI Gan spec to uint8 for lr sdr
                         patch = patch.astype(unit_varHdr) #changes the data type in according to JSI Gan spec to uint16 for hr hdr
                     
-                    ###writing array section 
+                    
+                    ###writing complete array section 
                     p = (allpatches-1) #calcualte current patch position
-                    try:
-                        #print(patch_lr.shape)
-                        sdrarray[:,:,:,p] = patch_lr # try Write the tmoed Patch to sdrarray at current patch position
-                    except:
-                        print('Error at SDR- Array Writing :..(')
-                    try:
-                        #print(patch.shape)
-                        hdrarray[:,:,:,p] = patch # try Write the hr hdr Patch to hdrarray at current patch position
-                    except:
-                        print('Error at HDR- Array Writing :..(')
+                    if (savein == 'm' or savein == 'mp'):
+                        #if(unit_varHdr == np.uint8):
+                        #patch_lrtm = patch_lrtm * ((2 ** 8)-1)
+                        try:
+                            #print(patch_lrtm.shape)
+                            sdrarray[:,:,:,p] = patch_lrtm # try Write the tmoed Patch to sdrarray at current patch position
+                        except:
+                            print('Error at SDR- Array Writing :..(')
+                        try:
+                            #print(patch.shape)
+                            hdrarray[:,:,:,p] = patch # try Write the hr hdr Patch to hdrarray at current patch position
+                        except:
+                            print('Error at HDR- Array Writing :..(')
+                        
                         
                     begY = begY + 1 #Counts up from 1 to all possible cuts of the current picture in Y
                     endY = endY + yaxis #Counts up the position from endY in yaxis steps
@@ -399,29 +420,35 @@ if (savein == 'mp' or savein == 'm' ): #only makes a Matlap File if wanted
     except:
         print('error at writing matlab file sorry :(')
 
+    sdrpro = (np.count_nonzero(sdrarray)/sdrarray.size)*100        
+    print(str(sdrpro)+'% of SDRarray numbers are bigger than 0')
+
+    sdrpro = (np.count_nonzero(hdrarray)/hdrarray.size)*100        
+    print(str(sdrpro)+'% of HDRarray numbers are bigger than 0')
+
 print(str((time.time() - start_time)/60)+' Minutes') #outputs the time in minutes
 print('------------------------- Done --------------------')
 
 
-# In[41]:
+# In[16]:
 
 
 #python3 main.py --phase train --scale_factor 2 --train_data_path_LR_SDR ./SDR_data.mat --train_data_path_HR_HDR ./HDR_data.mat --epoch 5 --batch_size 4
 
 
-# In[31]:
+# In[19]:
 
 
 ### gives the amount of nuberst larger than 0 in percent
 #np.count_nonzero(ab)
-#(np.count_nonzero(sdrarray)/sdrarray.size)*100
+(np.count_nonzero(sdrarray)/sdrarray.size)*100
 
 
-# In[32]:
+# In[20]:
 
 
 #np.count_nonzero(ab)
-#(np.count_nonzero(hdrarray)/hdrarray.size)*100
+(np.count_nonzero(hdrarray)/hdrarray.size)*100
 
 
 # In[21]:
