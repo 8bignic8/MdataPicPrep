@@ -185,40 +185,7 @@ def inputargs():#todo finish
     
 
 
-# In[14]:
-
-
-# this function should return an random array with
-def randArray(allPatches, patchPerPic): 
-    patchRandArray = np.zeros((patchPerPic)) #generates the array
-    rand = random.SystemRandom() #starts the rand generator
-    while(patchPerPic > 0):
-        patchnNum = round(rand.randint(0, allPatches)) #
-        if (not(patchnNum in patchRandArray)): #if number is not in array already 
-            patchRandArray[patchPerPic-1] = patchnNum #write it in
-            patchPerPic = patchPerPic -1
-    return patchRandArray
-
-
-# In[15]:
-
-
-def returnPosFromNumber(xMax,yMax, pos): #should return one coordinat in x and y cunts up from 0 to pos-1
-    #allpos = xMax*yMax
-    pos = pos-1
-    x = 0
-    y = pos // xMax #modulo
-    x = pos % xMax
-    return x+1,y+1
-
-
-# In[ ]:
-
-
-
-
-
-# In[18]:
+# In[17]:
 
 
 #---- input section
@@ -226,7 +193,7 @@ def returnPosFromNumber(xMax,yMax, pos): #should return one coordinat in x and y
         
 start_time = time.time() #start the timeing of the Prgramm
 path = ''
-print('This skript uses a folder and converts the pictures in smaler random Patches in YUV or RGB color space, Use same size file to avoid errors')
+
 #data extention of the input data
 extention = input('What fileextention is supposed to be put into patches(e.g. hdr, png) [default: hdr: ]') or 'hdr'
 print(extention)
@@ -251,7 +218,7 @@ print(xaxis)
 yaxis = int(input('Y Patch size HDR HR [default:420px]: ') or "420")
 print(yaxis)
 #user can choose if the pacht-pictures should be in YU-V or RGB
-youWantYUV = input('Do you want to convert to yuv default: no ') or 'no'
+youWantYUV = input('Do you want to convert to yuv default: no') or 'no'
 #user can coose in wich folder the .mat file is stored
 savein = input('Should patches be saved in .mat file type: (m) oder should ist be saved as pictures (p) or saved as mat and .hdr/.png type: (mp), [default: m] ') or 'm'      
 print(savein)
@@ -263,31 +230,26 @@ if (savein == 'p' or savein == 'mp'):
 if (savein == 'm' or savein == 'mp'):
     #user can choose the name for the .mat file
     matName = input('Input Mat name default: data ') or 'data'
-    matPath = input('Input Mat directory path: ./matOut/ ') or './matOut/'
+    matPath = input('Input Mat directory path: ./matOut/') or './matOut/'
     if not os.path.exists(matPath):
             os.mkdir(matPath)
-    jsi = input('Is it for the JSI-GAN converion from float32 to uint8/16? default: no ') or 'no'
+    jsi = input('Is it for the JSI-GAN converion from float32 to uint8/16? default: no') or 'no'
     if (jsi != 'no'):
         unit_varSdr = (np.uint8)
         print('SDR .mat file will be uint8')
         unit_varHdr = (np.uint16)
         print('HDR .mat file will be uint16')
 if (savein == 'p' or savein == 'mp'): #if user wants to output pates in picters he can choose where
-    outPathsdr = input('spezify the output path of sdr pictures [default: ./sdrOut/ ] ') or './sdrOut/' #set the picture save path if it is choosen
+    outPathsdr = input('spezify the output path of sdr pictures [default: ./sdrOut/] ') or './sdrOut/' #set the picture save path if it is choosen
     if not os.path.exists(outPathsdr):
             os.mkdir(outPathsdr)
-    outPathhdr = input('spezify the output path of sdr pictures [default: ./hdrOut/ ] ') or './hdrOut/' #set the picture save path if it is choosen
+    outPathhdr = input('spezify the output path of sdr pictures [default: ./hdrOut/] ') or './hdrOut/' #set the picture save path if it is choosen
     if not os.path.exists(outPathhdr):
         os.mkdir(outPathhdr)
-
-        #TO DO if files should all have the same name or original Filename
-inhalte
-if ((input('do you want to know all patches possible? default: no') or 'no')!='no'):
-    allpatches = totalpatchespossible(path,amountOfPictures,extention,xaxis,yaxis,tokonvPic)  #calc all output patches
-patchAmount = input('How many patches do you want to cut out of each Picture? default: 30- ') or '30'
+    #TO DO if files should all have the same name or original Filename  
 
 
-# In[19]:
+# In[18]:
 
 
 ### write pic to .mat and/or .hdr/.png
@@ -298,9 +260,9 @@ patchAmount = input('How many patches do you want to cut out of each Picture? de
     
 
 #---- programm section
+allpatches = totalpatchespossible(path,amountOfPictures,extention,xaxis,yaxis,tokonvPic)  #calc all output patches
+#print(str(allpatches)+'all Patches')
 
-allpatches = int(patchAmount)*int(tokonvPic) # calculates the amount of pictures total
-print('That will be ==> 'str(allpatches)+' Patches in total :)')
 hdrarray = np.zeros((xaxis,yaxis,3,allpatches))#create empty np array of the size of allpatches
 hdrarray = hdrarray.astype(unit_varHdr) #changes the type of np array to uint16
 xldr = int(xaxis/factor) #calculates the samler array axes x
@@ -310,12 +272,10 @@ sdrarray = sdrarray.astype(unit_varSdr)#changes the type of np array to uint8
 #Arrays are defined in [amountOfallPatchesPossible,x,y,RGB]
 
 print('Start processing...')
-tokonvPic= (int(amountOfPictures)-int(tokonvPic))# the amount of pictures cut into pachtes is calculated
-#allpatchesSave = allpatches #all pachtes are saved
-print(tokonvPic)
-#amountOfPictures = amountOfPictures - 1 # needs to count down because while counts to more than in amonut of Pictures
-print(amountOfPictures)
-while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes from high to low, beginning with the hightes Number
+tokonvPic= (amountOfPictures-tokonvPic)# the amount of pictures cut into pachtes is calculated
+allpatchesSave = allpatches #all pachtes are saved
+amountOfPictures = amountOfPictures - 1 # needs to count down because while counts to more than in amonut of Pictures
+while (amountOfPictures >= tokonvPic): #filling Array with pachtes from high to low, beginning with the hightes Number
     currentFile = os.listdir(path)[amountOfPictures] #currentFile holds the name of the current position file 
     try:
         if (currentFile.split('.')[1] == str(extention)): #checks if file is ending as wanted
@@ -324,140 +284,110 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
             originalPicture = readThePicture(he) #reads the currentpicture and saves it
             
             #print(originalPicture.max())
-            #begX = 1 #startingnumber in wich the cutting starts in X-axes
-            #endX = xaxis # sets current start pixel position at wich the cutting starts in X xaxis is the user defined size
-            
+            begX = 1 #startingnumber in wich the cutting starts in X-axes
+            endX = xaxis # sets current start pixel position at wich the cutting starts in X
             pxy=patchesxy(originalPicture,xaxis,yaxis) # gives back the length of the current picture (numx,numy) e.g. (3,2)
             px= pxy[0] #saves the max x pos in px
             py= pxy[1] #saves the max y pos in py
-            #print(pxy)
-            patchCuts = randArray((px*py),int(patchAmount))# returns a array with amount patchAmount and the random positions to cut
-            #print(patchCuts)
             
-            aktPatch = 0
-            savePXY = px,py
-            while (aktPatch < int(patchAmount)): # cut until you are at the beginning of the picture X position
-                #print(str(patchAmount)+'Patchamaount')
-                #print(str(patchCuts[(aktPatch)]))
-                randPosXY = returnPosFromNumber((savePXY[0]),(savePXY[1]),int(patchCuts[(aktPatch)])) #returns the x,y coordinate within a given position
-                aktPatch = aktPatch + 1
-                begy = randPosXY[1]* yaxis #is the new begin Pos in y
-                begx = randPosXY[0]* xaxis #is the new begin Pos in x
-                #print('Yschnitt'+str(begy))
-                #print('Xschnitt'+str(begx))
-                #print(originalPicture.shape)
-                px = begx - xaxis #is the new end Pos in x
-                py = begy - yaxis #is the new end Pos in Y
-                #begY = 1 #startingnumber in wich the cutting starts in Y-axes
-                #endY = yaxis # sets current start pixel position at wich the cutting starts in Y
-                #x = (begX*xaxis)-xaxis #start patch position in x
-
-                #while (py>=begY): # cut until you are at the beginning of the picture Y position
+            while (px >= begX): # cut until you are at the beginning of the picture X position
+                begY = 1 #startingnumber in wich the cutting starts in Y-axes
+                endY = yaxis # sets current start pixel position at wich the cutting starts in Y
+                x = (begX*xaxis)-xaxis #start patch position in x
+    
+                while (py>=begY): # cut until you are at the beginning of the picture Y position
                     ### reading the picture and cutting section
-                    #y = (begY*yaxis)-yaxis #start patch position in y
-                patch = cutPatch(px,py,begx,begy,originalPicture) #make the patch and return it to the patch (floart64) array
-                #print(patch.shape)  
-                tmo = Randtone_map() # returns a random name for the tonemapping Operator to use
+                    y = (begY*yaxis)-yaxis #start patch position in y
+                    patch = cutPatch(x,y,endX,endY,originalPicture) #make the patch and return it to the patch (floart64) array
+                    tmo = Randtone_map() # returns a random name for the tonemapping Operator to use
                     
-                patchLR = resizePic(patch,factor) #resize picture from Patch with the factor
-                tmoed = tMO(patchLR,tmo) #tonemap the resized patch with the before chosen Tone Mapping Operator
+                    patchLR = resizePic(patch,factor) #resize picture from Patch with the factor
+                    tmoed = tMO(patchLR,tmo) #tonemap the resized patch with the before chosen Tone Mapping Operator
                     #print(tmoed)
-                patch_lrtm = tmoed
+                    patch_lrtm = tmoed
                     ####Color YUV Section
-                if (youWantYUV != 'no'): #if change to yuv
-                    patch_lrtm = RGBtoYUV(tmoed) # changes the color space of lr sdr array
-                    patch = RGBtoYUV(patch) # changes the color space of hr hdr array
+                    if (youWantYUV != 'no'): #if change to yuv
+                        patch_lrtm = RGBtoYUV(tmoed) # changes the color space of lr sdr array
+                        patch = RGBtoYUV(patch) # changes the color space of hr hdr array
                     ###Picture section
                     ### Pictures will be saved as 8bit .png with the picture beeing between 0- 255 uint8
                     ### and 16 bit .hdr with the picture beeing between 0- 2^16 float16
                     #print('HDR MAX')
-                if (savein == 'p' or savein == 'mp'): #save as picture if chosen
+                    if (savein == 'p' or savein == 'mp'): #save as picture if chosen
                         #buildFilename = ((currentFile.split('.')[0])+'_'+str(allpatches-1))#builds output name 
-                    buildFilename = str(allpatches-1).zfill(6)# gives the filename only an number filled up with 6 zeros (mybe better if zeros from max allpatches)
+                        buildFilename = str(allpatches-1).zfill(6)# gives the filename only an number filled up with 6 zeros (mybe better if zeros from max allpatches)
                         # TODO Add a Input for the wanted out_format
-                    patch_lrtmp = patch_lrtm * ((2 ** 8)-1)
-                    if(testing != 'no'):
-                        spaceIndi = 'u','v','y' #orders the Name to the right place
-                        savePic((patch_lrtmp[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture
-                        savePic((patch_lrtmp[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture
-                        savePic((patch_lrtmp[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture
+                        patch_lrtmp = patch_lrtm * ((2 ** 8)-1)
+                        if(testing != 'no'):
+                            spaceIndi = 'u','v','y' #orders the Name to the right place
+                            savePic((patch_lrtmp[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture
+                            savePic((patch_lrtmp[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture
+                            savePic((patch_lrtmp[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture
                             
                             ####Saveing the 16Bit HDR picturespatches
-                        if(hrImgOut !='no'):
-                            savePic((patch[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'hdr',outPathhdr)#saves final singel color channel Picture
-                            savePic((patch[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'hdr',outPathhdr)#saves final singel color channel Picture
-                            savePic((patch[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'hdr',outPathhdr)#saves final singel color channel Picture
+                            if(hrImgOut !='no'):
+                                savePic((patch[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'hdr',outPathhdr)#saves final singel color channel Picture
+                                savePic((patch[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'hdr',outPathhdr)#saves final singel color channel Picture
+                                savePic((patch[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'hdr',outPathhdr)#saves final singel color channel Picture
                             
                             
                             #Saveing the 16Bit PNG output picturepachtes
-                        if(hrImgOut == 'no'):
-                            patchbic = patch * ((2 ** 16)-1)
-                            patchbic = patchbic.astype(np.uint16)
-                            print('(HDR)-PNG is 16 bit')
-                            savePic((patchbic[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathhdr)#saves final singel color channel Picture
-                            savePic((patchbic[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathhdr)#saves final singel color channel Picture
-                            savePic((patchbic[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathhdr)#saves final singel color channel Picture
+                            if(hrImgOut == 'no'):
+                                patchbic = patch * ((2 ** 16)-1)
+                                patchbic = patchbic.astype(np.uint16)
+                                print('(HDR)-PNG is 16 bit')
+                                savePic((patchbic[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic((patchbic[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic((patchbic[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathhdr)#saves final singel color channel Picture
                             ###To DO make 16 bit PNG
-                    if(testing == 'no'):
-                        if(hrImgOut == 'no'):
-                            patchpic = patch * ((2 ** 16)-1)
-                            patchpic = patchpic.astype(np.uint16)
-                            savePic(patchpic,buildFilename,'png',outPathhdr)#change 'hdr' here for different HDR-picture save
-                        if(hrImgOut != 'no'):
-                            savePic(patch,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save    
-                        savePic(patch_lrtmp,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
+                        if(testing == 'no'):
+                            if(hrImgOut == 'no'):
+                                patchpic = patch * ((2 ** 16)-1)
+                                patchpic = patchpic.astype(np.uint16)
+                                savePic(patchpic,buildFilename,'png',outPathhdr)#change 'hdr' here for different HDR-picture save
+                            if(hrImgOut != 'no'):
+                                savePic(patch,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save    
+                            savePic(patch_lrtmp,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
 
-                if(unit_varHdr == np.uint16):
-                    patch_lrtm = patch_lrtm * ((2 ** 8)-1) 
-                    patch = patch * ((2 ** 16)-1) #HDR is changed so it fitts the unit16 format and can be compared
+                    if(unit_varHdr == np.uint16):
+                        patch_lrtm = patch_lrtm * ((2 ** 8)-1) 
+                        patch = patch * ((2 ** 16)-1) #HDR is changed so it fitts the unit16 format and can be compared
                         #print('HDR')
                         #print(patch.max())
                         #print(patch.min())
                         #print('LDR')
                         #print(patch_lr.max())
                         #print(patch_lr.min())
-                    patch_lr = patch_lrtm.astype(unit_varSdr) #changes the data type in according to JSI Gan spec to uint8 for lr sdr
-                    patch = patch.astype(unit_varHdr) #changes the data type in according to JSI Gan spec to uint16 for hr hdr
+                        patch_lr = patch_lrtm.astype(unit_varSdr) #changes the data type in according to JSI Gan spec to uint8 for lr sdr
+                        patch = patch.astype(unit_varHdr) #changes the data type in according to JSI Gan spec to uint16 for hr hdr
                     
                     
                     ###writing complete array section 
-                p = (allpatches-1) #calcualte current patch position
-                if (savein == 'm' or savein == 'mp'):
+                    p = (allpatches-1) #calcualte current patch position
+                    if (savein == 'm' or savein == 'mp'):
                         #if(unit_varHdr == np.uint8):
                         #patch_lrtm = patch_lrtm * ((2 ** 8)-1)
-                    try:
+                        try:
                             #print(patch_lrtm.shape)
-                        sdrarray[:,:,:,p] = patch_lrtm # try Write the tmoed Patch to sdrarray at current patch position
-                    except:
-                        print('Error at SDR- Array Writing :..(')
-                    try:
-                        hdrarray[:,:,:,p] = patch # try Write the hr hdr Patch to hdrarray at current patch position
-                    except:
-                        print('Error at HDR- Array Writing :..(')
+                            sdrarray[:,:,:,p] = patch_lrtm # try Write the tmoed Patch to sdrarray at current patch position
+                        except:
+                            print('Error at SDR- Array Writing :..(')
+                        try:
+                            #print(patch.shape)
+                            hdrarray[:,:,:,p] = patch # try Write the hr hdr Patch to hdrarray at current patch position
+                        except:
+                            print('Error at HDR- Array Writing :..(')
                         
                         
-                    #begY = begY + 1 #Counts up from 1 to all possible cuts of the current picture in Y
-                    #endY = endY + yaxis #Counts up the position from endY in yaxis steps
-                allpatches = allpatches - 1 #Counts down all patches of all pictures to 0
-                print('Patch === '+str(allpatches)+' ==> Done')
-                #begX = begX + 1 #Counts up from 1 to all possible cuts of the current picture in X
-                #endX = endX + xaxis # Counts up the position from endX in xaxis steps
-                
+                    begY = begY + 1 #Counts up from 1 to all possible cuts of the current picture in Y
+                    endY = endY + yaxis #Counts up the position from endY in yaxis steps
+                    allpatches = allpatches - 1 #Counts down all patches of all pictures to 0
+                    print('Patch === '+str(allpatches)+' ==> Done')
+                begX = begX + 1 #Counts up from 1 to all possible cuts of the current picture in X
+                endX = endX + xaxis # Counts up the position from endX in xaxis steps
     except:
-        print('Error with data maybe not an .hdr file continuing...')
-        print(str(originalPicture.shape)+'OrgPicShape')
-        print('BeginHereX '+str(begx)+' to '+str(px))
-        print('beginHereY '+str(begy)+' to '+str(py))
-        print(str(patchCuts.shape)+' PatchCutsAmaount')
-        print(str(aktPatch)+' PatchPos')
-        print(str(patchCuts[(aktPatch)])+' PatchCuts_pos')
-        print(str(patch.shape)+' hdrPatchShape'
-        print(str(patch_lrtm.shape)+' sdrPatchShape'
-        
+        print('Error with data maybe not an .hdr file continuing...')  
     amountOfPictures = amountOfPictures - 1 #counts down current picture pos
-    #print(str(amountOfPictures)+'AmountOf Pic')
-    
-    
 if (savein == 'mp' or savein == 'm' ): #only makes a Matlap File if wanted
     try:
         matLabel = 'HDR_data'
@@ -506,18 +436,12 @@ print('------------------------- Done --------------------')
 #python3 main.py --phase train --scale_factor 2 --train_data_path_LR_SDR ./SDR_data.mat --train_data_path_HR_HDR ./HDR_data.mat --epoch 5 --batch_size 4
 
 
-# In[21]:
+# In[19]:
 
 
 ### gives the amount of nuberst larger than 0 in percent
 #np.count_nonzero(ab)
 (np.count_nonzero(sdrarray)/sdrarray.size)*100
-
-
-# In[ ]:
-
-
-
 
 
 # In[20]:
