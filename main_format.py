@@ -218,7 +218,7 @@ def returnPosFromNumber(xMax,yMax, pos): #should return one coordinat in x and y
 
 
 
-# In[18]:
+# In[20]:
 
 
 #---- input section
@@ -287,7 +287,7 @@ if ((input('do you want to know all patches possible? default: no') or 'no')!='n
 patchAmount = input('How many patches do you want to cut out of each Picture? default: 30- ') or '30'
 
 
-# In[19]:
+# In[21]:
 
 
 ### write pic to .mat and/or .hdr/.png
@@ -300,7 +300,7 @@ patchAmount = input('How many patches do you want to cut out of each Picture? de
 #---- programm section
 
 allpatches = int(patchAmount)*int(tokonvPic) # calculates the amount of pictures total
-print('That will be ==> 'str(allpatches)+' Patches in total :)')
+print('That will be ==> '+str(allpatches)+' Patches in total :)')
 hdrarray = np.zeros((xaxis,yaxis,3,allpatches))#create empty np array of the size of allpatches
 hdrarray = hdrarray.astype(unit_varHdr) #changes the type of np array to uint16
 xldr = int(xaxis/factor) #calculates the samler array axes x
@@ -451,8 +451,8 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
         print(str(patchCuts.shape)+' PatchCutsAmaount')
         print(str(aktPatch)+' PatchPos')
         print(str(patchCuts[(aktPatch)])+' PatchCuts_pos')
-        print(str(patch.shape)+' hdrPatchShape'
-        print(str(patch_lrtm.shape)+' sdrPatchShape'
+        print(str(patch.shape)+' hdrPatchShape')
+        print(str(patch_lrtm.shape)+' sdrPatchShape')
         
     amountOfPictures = amountOfPictures - 1 #counts down current picture pos
     #print(str(amountOfPictures)+'AmountOf Pic')
