@@ -1,9 +1,3 @@
-h5py
-hdf5storage
-numpy
-imageio
-mat73
-cv2 (openCV2)
-random
-time
-argparse
+conda install -c conda-forge opencv -y
+conda install -c anaconda numpy  -y
+conda install -c conda-forge imageio -y
