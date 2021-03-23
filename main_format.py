@@ -14,8 +14,8 @@ import cv2
 import random
 import time
 import argparse
-from IPython import display
-from IPython.display import Image
+#from IPython import display
+#from IPython.display import Image, display
 
 
 # In[2]:
@@ -42,10 +42,13 @@ def readThePicture(picturepath):
 def tMO(file,name): #tonemapping the file
     try:
         if (name == 'reinhard'):
+            print('Reinhard')
             tom = cv2.createTonemapReinhard()
         if (name == 'mantiuk'):
+            print('Mantiuk')
             tom = cv2.createTonemapMantiuk()
         if (name == 'drago'):
+            print('Drago')
             tom = cv2.createTonemapDrago()
        # if (name == 'linear'):
         #    tom = cv2.createTonemap()
@@ -181,28 +184,21 @@ def resizePic(inputpic,factor): #reszizing the inputpic picture keeping the info
 # In[11]:
 
 
-def BGRtoYUV(img): #changeing the img picture from RGB- to YUV-Color space
-    pictureYUV = cv2.cvtColor(img, cv2.COLOR_BGR2YUV, cv2.IMREAD_UNCHANGED)
+def RGBtoYUV(img): #changeing the img picture from RGB- to YUV-Color space
+    pictureYUV = cv2.cvtColor(img, cv2.COLOR_BGR2YUV, cv2.IMREAD_UNCHANGED) #Important INPUT is BGR in float32
+
     return pictureYUV
 
 
 # In[12]:
 
 
-def RGBtoYUV(img): #changeing the img picture from RGB- to YUV-Color space
-    pictureYUV = cv2.cvtColor(img, cv2.COLOR_RGB2YUV, cv2.IMREAD_UNCHANGED)
-    return pictureYUV
-
-
-# In[13]:
-
-
 def YUVtoRGB(img):#changeing the img picture from YUV- to RGB-Color space
-    pictureRGB = cv2.cvtColor(img, cv2.COLOR_YUV2RGB, cv2.IMREAD_UNCHANGED)
+    pictureRGB = cv2.cvtColor(img, cv2.COLOR_YUV2BGR, cv2.IMREAD_UNCHANGED)
     return pictureRGB
 
 
-# In[14]:
+# In[13]:
 
 
 #TO Finish
@@ -213,7 +209,7 @@ def inputargs():#todo finish
     
 
 
-# In[15]:
+# In[14]:
 
 
 # this function should return an random array with
@@ -228,7 +224,7 @@ def randArray(allPatches, patchPerPic):
     return patchRandArray
 
 
-# In[16]:
+# In[15]:
 
 
 def returnPosFromNumberXY(xMax,yMax, pos): #should return one coordinat in x and y cunts up from 0 to pos-1
@@ -256,7 +252,7 @@ def returnPosFromNumberXY(xMax,yMax, pos): #should return one coordinat in x and
 
 
 
-# In[17]:
+# In[16]:
 
 
 #---- input section
@@ -275,6 +271,8 @@ if not os.path.exists(path):
 print(path)
 inhalte = (os.listdir(path)) #list of all files in path
 amountOfPictures = 0
+
+keepFileName = input('Do you want to keep the original filename? default: no ') or 'no'
 
 amountOfPictures = sum(1 for f in os.listdir(path) if f.endswith('.'+extention)) #summ all data ending with right extention
 print('There are: '+str(amountOfPictures)+' '+extention+' Pictures in the folder')
@@ -328,13 +326,13 @@ if ((input('do you want to know all patches possible? default: no') or 'no')!='n
 patchAmount = input('How many patches do you want to cut out of each Picture? default: 3- ') or '3'
 
 
-# In[18]:
+# In[17]:
 
 
 ### write pic to .mat and/or .hdr/.png
 
 #Just for general information Data Structure JSI-Gan
-###['SDR_data'][79Y][79X][2C][39839Num] dtype=uint8 Strukture .mat Data
+###['SDR_data'],[79Y][79X][2C],[39839Num] dtype=uint8 Strukture .mat Data
 ###
 ###['HDR_data'][159][159][2][39839] dtype=uint16 Strukture .mat Data
     
@@ -394,72 +392,29 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                 #print(px,py,begx,begy)
                 
                 patch = cutPatchxy(px,begx,py,begy,originalPicture) #begX,endX,begY,endY,picyxmake the patch and return it to the patch (floart64) array
-                
+                print(patch.shape)
                 ###choose your option
                 #HDR original with float32
                 hdr = patch
+                #HDR original in YUV
+                hdr_yuv = RGBtoYUV(hdr) 
+                #HDR in uint16 with 10bit
+                hdr_png = np.clip((hdr*((2**16)-1)), 0, ((2**16)-1)).astype(np.uint16)
+                #HDR in uint16 and yuv
+                hdr_png_yuv = np.clip((hdr_yuv*((2**16)-1)), 0, ((2**16)-1)).astype(np.uint16) 
                 
-                #PNG 16Bit
-                #Thanks to https://matiascodesal.com/blog/how-convert-hdr-image-ldr-using-python/
-                ldr = np.clip(hdr, 0, 1)
-                # Color space conversion
-                ldr_skale = ldr**(1/2.2)
-                # 0-255 remapping for bit-depth conversion
-                ldr = ((2 ** 10) -1) * ldr_skale   # convert to uint16 but is only 10bit             
-                png_sixT = ldr.astype(np.uint16)
+                ##SDR area
+                tmo = Randtone_map()
+                sdr_32 = tMO(hdr,tmo) # as float 32
+                sdr_32_fac = resizePic(sdr_32,factor)
+                #SDR 
+                ldr_8 = np.clip((sdr_32_fac*((2**8)-1)), 0, ((2**8)-1)).astype(np.uint8)
+                #SDR in YUV
+                ldr_8_yuv = RGBtoYUV(ldr_8)
                 
-                #PNG 8Bit
-                png = (((2 ** 8) -1) * ldr_skale).astype(np.uint8) ##Same as above but with 8 bit color
-                
-                #Patches in LR with factor with all the above
-                hdr_lr = resizePic(hdr,factor) #resize picture from Patch with the factor
-                png_sixT_lr = resizePic(png_sixT,factor) #resize picture from Patch with the factor
-                png_lr = resizePic(png,factor) #resize picture from Patch with the factor
-                #All of the above with TMO applyed
-                tmo = Randtone_map() # returns a random name for the tonemapping Operator to use
-                
-                #tonemap the resized patch with the before chosen Tone Mapping Operator
-                #print('before-3')
-                hdr_tmo = tMO(hdr,tmo)
-                hdr_lr_tmo = tMO(hdr_lr,tmo)
-                #png_sixT_tmo = np.clip((hdr_tmo*((2 ** 10)-1)),0, ((2 ** 10)-1)) #tonemapped picture and clips it to 10 bit
-                #png_sixT_lr_tmo = np.clip((hdr_lr_tmo*((2 ** 10)-1)),0, ((2 ** 10)-1))
-                png_tmo = hdr_tmo*((2 ** 8)-1)
-                png_tmo = np.clip(png_tmo, 0, ((2 ** 8)-1))
-                png_lr_tmo = hdr_lr_tmo*((2 ** 8)-1)
-                png_lr_tmo = np.clip(png_lr_tmo, 0, ((2 ** 8)-1))
-                #All of the above with YUV applyed
-                #print('before-2')
-                ###HDR
-                hdr_yuv = RGBtoYUV(hdr)
-                hdr_lr_yuv = RGBtoYUV(hdr_lr)
-                hdr_tmo_yuv = RGBtoYUV(hdr_tmo)
-                hdr_lr_tmo_yuv = RGBtoYUV(hdr_lr_tmo)
-                #print('before-1')
-                ####PNG 16Bit
-                png_sixT_yuv = hdr_yuv*((2 ** 10)-1)#.astype(np.uint16) #BGRtoYUV(png_sixT)
-                png_sixT_yuv = np.clip(png_sixT_yuv, 0, ((2 ** 10)-1))
-                png_sixT_yuv = png_sixT_yuv.astype(np.uint16)
-                
-                
-                
-                #png_sixT_lr_yuv = BGRtoYUV(png_sixT_lr)
-                #png_sixT_tmo_yuv = BGRtoYUV(png_sixT_tmo)
-                #png_sixT_lr_tmo_yuv = BGRtoYUV(png_sixT_lr_tmo)
-                
-                #####PNG 8Bit
-                #png_yuv = np.clip((hdr_yuv*((2 ** 8)-1)), 0, ((2 ** 8)-1)) #BGRtoYUV(png)
-                #png_lr_yuv = np.clip((hdr_lr_yuv*((2 ** 8)-1)), 0, ((2 ** 8)-1)) #BGRtoYUV(png_lr)
-                #png_tmo_yuv = np.clip((hdr_tmo_yuv*((2 ** 8)-1)), 0, ((2 ** 8)-1)) #BGRtoYUV(png_tmo)
-                print('before')
-                png_lr_tmo_yuv = hdr_lr_tmo_yuv * ((2 ** 8)-1) #)).astype(np.uint8) #BGRtoYUV(png_lr_tmo)
-                png_lr_tmo_yuv = np.clip(png_lr_tmo_yuv, 0, ((2 ** 8)-1))
-                png_lr_tmo_yuv = png_lr_tmo_yuv.astype(np.uint8)
-                
-                print('tmo')
                     ####Color YUV Section
                 if (savein == 'p' or savein == 'mp'): #save as picture if chosen
-                    keepFileName = 'no' ##To do add input
+                    
                     if(keepFileName == 'yes' ):
                         buildFilename = ((currentFile.split('.')[0])+'_'+str(allpatches-1))# dont delete builds output name 
                     buildFilename = str(allpatches-1).zfill(6)# gives the filename only an number filled up with 6 zeros (mybe better if zeros from max allpatches)
@@ -468,31 +423,34 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                         # TODO Add a Input for the wanted out_format
                         if((testing != 'no') and (jsi != 'no')):
                             spaceIndi = 'y','u','v' #orders the Name to the right place
-                            savePic((png_lr_tmo_yuv[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture y
-                            savePic((png_lr_tmo_yuv[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture u
-                            savePic((png_lr_tmo_yuv[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture v
-                            savePic(png_lr_tmo_yuv,buildFilename,'png',outPathsdr) #check Picture
+                            savePic((ldr_8_yuv[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture y
+                            savePic((ldr_8_yuv[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture u
+                            savePic((ldr_8_yuv[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture v
+                            savePic(ldr_8_yuv,buildFilename+'YUV','png',outPathsdr) #check Picture
+                            savePic(ldr_8,buildFilename,'png',outPathsdr) #check Picture
                                 ####Saveing the 16Bit HDR picturespatches
                             if(hrImgOut !='no'):
                                 savePic((hdr_yuv[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'hdr',outPathhdr)#saves final singel color channel Picture
                                 savePic((hdr_yuv[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'hdr',outPathhdr)#saves final singel color channel Picture
                                 savePic((hdr_yuv[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'hdr',outPathhdr)#saves final singel color channel Picture
-                                savePic(hdr_yuv,buildFilename,'hdr',outPathhdr) #check Picture
+                                savePic(hdr_yuv,buildFilename+'YUV','hdr',outPathhdr) #check Picture
+                                savePic(hdr,buildFilename,'hdr',outPathhdr)
 
                                 #Saveing the 16Bit PNG output picturepachtes
                             if(hrImgOut == 'no'):
-                                savePic((png_sixT_yuv[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathhdr)#saves final singel color channel Picture
-                                savePic((png_sixT_yuv[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathhdr)#saves final singel color channel Picture
-                                savePic((png_sixT_yuv[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathhdr)#saves final singel color channel Picture
-                                savePic(png_sixT_yuv,buildFilename,'png',outPathhdr) #check Picture
+                                savePic((hdr_png_yuv[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic((hdr_png_yuv[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic((hdr_png_yuv[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic(hdr_png_yuv,buildFilename+'YUV','png',outPathhdr) #check Picture
+                                savePic(hdr_png,buildFilename,'png',outPathhdr)
                                 
                                 ###To DO make 16 bit PNG
                         if(testing == 'no'):
                             if(hrImgOut == 'no'):
-                                savePic(png_sixT_yuv,buildFilename,'png',outPathhdr)#change 'hdr' here for different HDR-picture save
+                                savePic(hdr_png_yuv,buildFilename,'png',outPathhdr)#change 'hdr' here for different HDR-picture save
                             if(hrImgOut != 'no'):
                                 savePic(hdr_yuv,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save    
-                            savePic(png_lr_tmo_yuv,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
+                            savePic(ldr_8_yuv,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
 
                     
                     #########Normal Section
@@ -501,10 +459,10 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                         # TODO Add a Input for the wanted out_format
                         if(testing != 'no'):
                             spaceIndi = 'y','u','v' #orders the Name to the right place
-                            savePic((png_lr_tmo[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture y
-                            savePic((png_lr_tmo[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture u
-                            savePic((png_lr_tmo[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture v
-                            savePic(png_lr_tmo,buildFilename,'png',outPathsdr) #check Picture
+                            savePic((ldr_8[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture y
+                            savePic((ldr_8[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture u
+                            savePic((ldr_8[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture v
+                            savePic(ldr_8,buildFilename,'png',outPathsdr) #check Picture
                                 ####Saveing the 16Bit HDR picturespatches
                             if(hrImgOut !='no'):
                                 savePic((hdr[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'hdr',outPathhdr)#saves final singel color channel Picture
@@ -515,16 +473,16 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                                 #Saveing the 16Bit PNG output picturepachtes
                             if(hrImgOut == 'no'):
                                 print('(HDR)-PNG is 16 bit')
-                                savePic((png_sixT[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathhdr)#saves final singel color channel Picture
-                                savePic((png_sixT[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathhdr)#saves final singel color channel Picture
-                                savePic((png_sixT[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathhdr)#saves final singel color channel Picture
-                                savePic(png_sixT,buildFilename,'png',outPathhdr) #check Pic
+                                savePic((hdr_png[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic((hdr_png[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic((hdr_png[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathhdr)#saves final singel color channel Picture
+                                savePic(hdr_png,buildFilename,'png',outPathhdr) #check Pic
                         if(testing == 'no'):
                             if(hrImgOut == 'no'):
-                                savePic(png_sixT,buildFilename,'png',outPathhdr)#change 'hdr' here for different HDR-picture save
+                                savePic(hdr_png,buildFilename,'png',outPathhdr)#change 'hdr' here for different HDR-picture save
                             if(hrImgOut != 'no'):
                                 savePic(hdr,buildFilename,'hdr',outPathhdr)#change 'hdr' here for different HDR-picture save    
-                            savePic(png_lr_tmo,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
+                            savePic(ldr_8,buildFilename,'png',outPathsdr)#chnage 'png' here for different LDR-picture save 
                     
                     ###writing SDR array section 
                 p = (allpatches-1) #calcualte current patch position
@@ -532,20 +490,20 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                     try:
                         if((youWantYUV == 'no') and (jsi == 'no')):
                             print('RGB_noJSI')
-                            sdrarray[:,:,:,p] = np.clip((png_lr_tmo/((2** 8)-1)), 0, 1) # clipped the tmoed Picture to 0,1
-                            hdrarray[:,:,:,p] = np.clip((hdr, 0, 1)) # try Write the Patch to hdrarray at current patch position
+                            sdrarray[:,:,:,p] = ldr_8 # clipped the tmoed Picture to 0,1
+                            hdrarray[:,:,:,p] = hdr # try Write the Patch to hdrarray at current patch position
                         if((youWantYUV != 'no') and (jsi == 'no')):
                             print('YUV_noJSI')
-                            sdrarray[:,:,:,p] = np.clip((png_lr_tmo_yuv/((2** 8)-1)), 0, 1) # clipped the tmoed Picture to 0,1
-                            hdrarray[:,:,:,p] = np.clip(hdr_yuv, 0, 1) # try Write the Patch to hdrarray at current patch position
+                            sdrarray[:,:,:,p] = ldr_8_yuv # clipped the tmoed Picture to 0,1
+                            hdrarray[:,:,:,p] = hdr_yuv # try Write the Patch to hdrarray at current patch position
                         if((youWantYUV == 'no') and (jsi != 'no')):
                             print('RGB_JSI')
-                            sdrarray[:,:,:,p] = png_lr_tmo # try Write the tmoed Patch to sdrarray at current patch position
-                            hdrarray[:,:,:,p] = png_sixT # try Write the Patch to hdrarray at current patch position
+                            sdrarray[:,:,:,p] = ldr_8 # try Write the tmoed Patch to sdrarray at current patch position
+                            hdrarray[:,:,:,p] = hdr_png # try Write the Patch to hdrarray at current patch position
                         if((youWantYUV != 'no') and (jsi != 'no')):
                             print('YUV_JSI')
-                            sdrarray[:,:,:,p] = png_lr_tmo_yuv # try Write the tmoed Patch to sdrarray at current patch position
-                            hdrarray[:,:,:,p] = png_sixT_yuv # try Write the Patch to hdrarray at current patch position     
+                            sdrarray[:,:,:,p] = ldr_8_yuv # try Write the tmoed Patch to sdrarray at current patch position
+                            hdrarray[:,:,:,p] = hdr_png_yuv # try Write the Patch to hdrarray at current patch position     
                     except:
                         print('Error at Array Writing :..(')
                         print(str(originalPicture.shape)+'OrgPicShape')
@@ -614,34 +572,10 @@ print(str((time.time() - start_time)/60)+' Minutes') #outputs the time in minute
 print('------------------------- Done --------------------')
 
 
-# In[19]:
+# In[18]:
 
 
-(hdr_tmo*((2**8)-1)).min()
-
-
-# In[20]:
-
-
-originalPicture.max()
-
-
-# In[21]:
-
-
-png_lr_tmo_yuv
-
-
-# In[22]:
-
-
-png_sixT_yuv
-
-
-# In[23]:
-
-
-hdr_lr_tmo_yuv
+#hdr_png.max()
 
 
 # In[ ]:
