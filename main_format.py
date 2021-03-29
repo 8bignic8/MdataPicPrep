@@ -48,7 +48,7 @@ def tMO(file,name): #tonemapping the file
             print('Mantiuk')
             tom = cv2.createTonemapMantiuk()
         if (name == 'drago'):
-            print('Drago')
+            print('drago')
             tom = cv2.createTonemapDrago()
        # if (name == 'linear'):
         #    tom = cv2.createTonemap()
@@ -181,11 +181,25 @@ def resizePic(inputpic,factor): #reszizing the inputpic picture keeping the info
     return pic
 
 
+# In[ ]:
+
+
+
+
+
 # In[11]:
 
 
 def RGBtoYUV(img): #changeing the img picture from RGB- to YUV-Color space
-    pictureYUV = cv2.cvtColor(img, cv2.COLOR_BGR2YUV, cv2.IMREAD_UNCHANGED) #Important INPUT is BGR in float32
+    pictureYUV = cv2.cvtColor((img), cv2.COLOR_BGR2YUV, cv2.IMREAD_UNCHANGED)
+    #pictureRGB = cv2.cvtColor(img, cv2.COLOR_YUV2BGR)
+    
+    #different Method
+    #im_rgb = img.astype(np.float32)
+    #im_ycrcb = cv2.cvtColor(im_rgb, cv2.COLOR_RGBE2YCR_CB)
+    #im_ycbcr = im_ycrcb[:,:,(0,2,1)].astype(np.float32)
+    #im_ycbcr[:,:,0] = (im_ycbcr[:,:,0]*(235-16)+16)/255.0 #to [16/255, 235/255]
+    #im_ycbcr[:,:,1:] = (im_ycbcr[:,:,1:]*(240-16)+16)/255.0 #to [16/255, 240/255]
 
     return pictureYUV
 
@@ -194,7 +208,11 @@ def RGBtoYUV(img): #changeing the img picture from RGB- to YUV-Color space
 
 
 def YUVtoRGB(img):#changeing the img picture from YUV- to RGB-Color space
-    pictureRGB = cv2.cvtColor(img, cv2.COLOR_YUV2BGR, cv2.IMREAD_UNCHANGED)
+    #pictureRGB = cv2.cvtColor(img, cv2.COLOR_YUV2RGB, cv2.IMREAD_UNCHANGED)
+    #https://stackoverflow.com/questions/26480125/how-to-get-the-same-output-of-rgb2ycbcr-matlab-function-in-python-opencv
+    #https://docs.opencv.org/3.4/d8/d01/group__imgproc__color__conversions.html
+    pictureRGB = cv2.cvtColor((img), cv2.COLOR_YUV2BGR, cv2.IMREAD_UNCHANGED)
+    
     return pictureRGB
 
 
@@ -240,25 +258,27 @@ def returnPosFromNumberXY(xMax,yMax, pos): #should return one coordinat in x and
     return x,y
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
 # In[16]:
+
+
+#piccc = readThePicture('/home/nico/programm/MdataPicPrep/sdrOut/000000.png')
+#piccc = RGBtoYUV(piccc)
+#savePic(piccc,'fileName_asdsad2222as','png',"/home/nico/programm/MdataPicPrep/sdrOut/")
+
+
+# In[ ]:
+
+
+
+
+
+# In[28]:
 
 
 #---- input section
 #TO DO add parser
         
-start_time = time.time() #start the timeing of the Prgramm
+
 path = ''
 print('This skript uses a folder and converts the pictures in smaler random Patches in YUV or RGB color space, Use same size file to avoid errors')
 #data extention of the input data
@@ -283,7 +303,7 @@ print(str(tokonvPic)+' pictures will be cut into patches')
 factor = int(input('Scale factor for Ldr LR [default:2]: ') or "2")
 #asks for the px size of the high resolution pictures
 print('The first picture has the shape (y,x, color)'+str(readThePicture(path+str(os.listdir(path)[amountOfPictures-1])).shape))
-yaxis = int(input('Y Patch size from HDR HR Patch in px [default:420px]: ') or "600")
+yaxis = int(input('Y Patch size from HDR HR Patch in py [default:420px]: ') or "600")
 print(yaxis)
 xaxis = int(input('X Patch size from HDR HR Patch in px [default:420px]: ') or "420")
 print(xaxis)
@@ -326,9 +346,10 @@ if ((input('do you want to know all patches possible? default: no') or 'no')!='n
 patchAmount = input('How many patches do you want to cut out of each Picture? default: 3- ') or '3'
 
 
-# In[17]:
+# In[29]:
 
 
+start_time = time.time() #start the timeing of the Prgramm
 ### write pic to .mat and/or .hdr/.png
 
 #Just for general information Data Structure JSI-Gan
@@ -399,9 +420,9 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                 #HDR original in YUV
                 hdr_yuv = RGBtoYUV(hdr) 
                 #HDR in uint16 with 10bit
-                hdr_png = np.clip((hdr*((2**16)-1)), 0, ((2**16)-1)).astype(np.uint16)
+                hdr_png = np.clip((hdr*((2**10)-1)), 0, ((2**10)-1)).astype(np.uint16)
                 #HDR in uint16 and yuv
-                hdr_png_yuv = np.clip((hdr_yuv*((2**16)-1)), 0, ((2**16)-1)).astype(np.uint16) 
+                hdr_png_yuv = np.clip((hdr_yuv*((2**10)-1)), 0, ((2**10)-1)).astype(np.uint16) 
                 
                 ##SDR area
                 tmo = Randtone_map()
@@ -410,7 +431,7 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                 #SDR 
                 ldr_8 = np.clip((sdr_32_fac*((2**8)-1)), 0, ((2**8)-1)).astype(np.uint8)
                 #SDR in YUV
-                ldr_8_yuv = RGBtoYUV(ldr_8)
+                ldr_8_yuv = (RGBtoYUV(((ldr_8).astype(np.uint8))).astype(np.uint8))
                 
                     ####Color YUV Section
                 if (savein == 'p' or savein == 'mp'): #save as picture if chosen
@@ -426,25 +447,21 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                             savePic((ldr_8_yuv[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathsdr)#saves final singel color channel Picture y
                             savePic((ldr_8_yuv[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathsdr)#saves final singel color channel Picture u
                             savePic((ldr_8_yuv[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathsdr)#saves final singel color channel Picture v
-                            savePic(ldr_8_yuv,buildFilename+'YUV','png',outPathsdr) #check Picture
                             savePic(ldr_8,buildFilename,'png',outPathsdr) #check Picture
                                 ####Saveing the 16Bit HDR picturespatches
                             if(hrImgOut !='no'):
                                 savePic((hdr_yuv[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'hdr',outPathhdr)#saves final singel color channel Picture
                                 savePic((hdr_yuv[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'hdr',outPathhdr)#saves final singel color channel Picture
                                 savePic((hdr_yuv[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'hdr',outPathhdr)#saves final singel color channel Picture
-                                savePic(hdr_yuv,buildFilename+'YUV','hdr',outPathhdr) #check Picture
-                                savePic(hdr,buildFilename,'hdr',outPathhdr)
+                                savePic(hdr_yuv,buildFilename,'hdr',outPathhdr) #check Picture
 
                                 #Saveing the 16Bit PNG output picturepachtes
                             if(hrImgOut == 'no'):
                                 savePic((hdr_png_yuv[:,:,0]),(str(allpatches-1)+'-'+spaceIndi[0]),'png',outPathhdr)#saves final singel color channel Picture
                                 savePic((hdr_png_yuv[:,:,1]),(str(allpatches-1)+'-'+spaceIndi[1]),'png',outPathhdr)#saves final singel color channel Picture
                                 savePic((hdr_png_yuv[:,:,2]),(str(allpatches-1)+'-'+spaceIndi[2]),'png',outPathhdr)#saves final singel color channel Picture
-                                savePic(hdr_png_yuv,buildFilename+'YUV','png',outPathhdr) #check Picture
-                                savePic(hdr_png,buildFilename,'png',outPathhdr)
+                                savePic(hdr_png,buildFilename,'png',outPathhdr) #check Picture
                                 
-                                ###To DO make 16 bit PNG
                         if(testing == 'no'):
                             if(hrImgOut == 'no'):
                                 savePic(hdr_png_yuv,buildFilename,'png',outPathhdr)#change 'hdr' here for different HDR-picture save
@@ -527,7 +544,7 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
         print(str(patchCuts[(aktPatch)])+' PatchCuts_pos')
         print(str(patch.shape)+' hdrPatchShape')
         print(str(png_lr_tmo.shape)+' sdrPatchShape')   
-        
+    print(str((time.time() - start_time)/60)+' Minutes to patch nr: '+str(allpatches)) #outputs the time in minutes    
     amountOfPictures = amountOfPictures - 1 #counts down current picture pos
     
 if (savein == 'mp' or savein == 'm' ): #only makes a Matlap File if wanted
@@ -572,10 +589,69 @@ print(str((time.time() - start_time)/60)+' Minutes') #outputs the time in minute
 print('------------------------- Done --------------------')
 
 
-# In[18]:
+# In[ ]:
 
 
-#hdr_png.max()
+
+
+
+# In[30]:
+
+
+ldr_8
+
+
+# In[26]:
+
+
+ab = readThePicture('/Users/littledragon/Documents/BA 13022020/programme/MdataPicPrep/sdrOut/000003.png')
+
+ldr_8_b = (RGBtoYUV(((ldr_8).astype(np.uint8))).astype(np.uint8))
+
+#hdr_png_yuv_b = (ldr_8_b).astype(np.uint8)#*127
+savePic(ldr_8_b,'fileName_letMeTink','png','./sdrOut/')
+
+ab  = (YUVtoRGB(((ldr_8_b).astype(np.uint8))).astype(np.uint8))
+#ab = YUVtoRGB(ab)
+savePic((ab),'fileName_letMeTink_rgb','png','./sdrOut/')
+
+ab = (ab/255).astype(np.float32)
+savePic((ab),'fileName_letMeTink_rgb_hdr','hdr','./sdrOut/')
+
+#hdr_png_yuv_b.max()
+
+
+# In[27]:
+
+
+#hdr_png = hdr*((2**10)-1)
+hdr_png_yuv_c = ((hdr)*((2**16)-1)).astype(np.uint16)
+hdr_png_yuv_c = RGBtoYUV(hdr_png_yuv_c)
+
+hdr_png_yuv_b = (hdr_png_yuv_c*((2**1)-1)).astype(np.uint16)#*127
+savePic(hdr_png_yuv_c,'fileName_letMeTink','png','./sdrOut/')
+
+ab  = (YUVtoRGB(hdr_png_yuv_c*((2**1)-1)).astype(np.uint16))
+#ab = YUVtoRGB(ab)
+savePic((ab),'fileName_letMeTink_rgb','png','./sdrOut/')
+
+ab = (ab/((2**16)-1)).astype(np.float32)
+savePic((ab),'fileName_letMeTink_rgb_hdr','hdr','./sdrOut/')
+HDR_test = YUVtoRGB((hdr_png_yuv/((2**10)-1)).astype(np.float32))
+savePic(HDR_test,'fileName_letMeTink_rgb_hdr_org','hdr','./sdrOut/')
+hdr_png_yuv_c.max()
+
+
+# In[62]:
+
+
+ldr_8_b.max()
+
+
+# In[108]:
+
+
+hdr_png_yuv_c
 
 
 # In[ ]:
