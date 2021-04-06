@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
+# In[ ]:
 
 
 import h5py as h5
@@ -18,7 +18,7 @@ import argparse
 #from IPython.display import Image, display
 
 
-# In[2]:
+# In[ ]:
 
 
 #Read Picture and return it
@@ -36,7 +36,7 @@ def readThePicture(picturepath):
     return(img) #returns picture
 
 
-# In[3]:
+# In[ ]:
 
 
 def tMO(file,name): #tonemapping the file
@@ -58,7 +58,7 @@ def tMO(file,name): #tonemapping the file
             tmo = cv2.createTonemapMantiuk(saturation=saturation, scale=scale, gamma=gamma)
             
         if (name == 'drago'):
-            print('drago')
+            print('Drago')
             saturation=1.0
             bias=0.85
             gamma=2.0
@@ -71,7 +71,7 @@ def tMO(file,name): #tonemapping the file
     return ldr
 
 
-# In[4]:
+# In[ ]:
 
 
 def convert(img, target_type_min, target_type_max): # converts the input array to a target type with the bounderys given
@@ -84,7 +84,7 @@ def convert(img, target_type_min, target_type_max): # converts the input array t
     return new_img
 
 
-# In[5]:
+# In[ ]:
 
 
 def savePic(picture,fileName,extention,outPath): #saves the given array as a pictures to the given output path
@@ -104,7 +104,7 @@ def savePic(picture,fileName,extention,outPath): #saves the given array as a pic
         print('--------------------')
 
 
-# In[6]:
+# In[ ]:
 
 
 def cutPatchxy(begX,endX,begY,endY,picyx):#cuts out a array of a given array
@@ -119,7 +119,7 @@ def cutPatchxy(begX,endX,begY,endY,picyx):#cuts out a array of a given array
     return picyx #returns a small part of the pic file
 
 
-# In[7]:
+# In[ ]:
 
 
 def Randtone_map(choose):
@@ -143,7 +143,7 @@ def Randtone_map(choose):
 #ToDo Output in CSV to later analize
 
 
-# In[8]:
+# In[ ]:
 
 
 def totalpatchespossible(path,amountOfPictures,extention,px,py,tokonvPic): #calculates the amount of total possible patches of the path you picked 
@@ -165,7 +165,7 @@ def totalpatchespossible(path,amountOfPictures,extention,px,py,tokonvPic): #calc
     return arraysize         
 
 
-# In[9]:
+# In[ ]:
 
 
 def patchesyx(inputpic,py,px): #calculates how often the array can be devided by px in x and py in y
@@ -182,7 +182,7 @@ def patchesyx(inputpic,py,px): #calculates how often the array can be devided by
         
 
 
-# In[10]:
+# In[ ]:
 
 
 def resizePic(inputpic,factor): #reszizing the inputpic picture keeping the information but scaling it down    
@@ -203,7 +203,7 @@ def resizePic(inputpic,factor): #reszizing the inputpic picture keeping the info
 
 
 
-# In[11]:
+# In[ ]:
 
 
 def RGBtoYUV(img): #changeing the img picture from RGB- to YUV-Color space
@@ -220,7 +220,7 @@ def RGBtoYUV(img): #changeing the img picture from RGB- to YUV-Color space
     return pictureYUV
 
 
-# In[12]:
+# In[ ]:
 
 
 def YUVtoRGB(img):#changeing the img picture from YUV- to RGB-Color space
@@ -232,7 +232,7 @@ def YUVtoRGB(img):#changeing the img picture from YUV- to RGB-Color space
     return pictureRGB
 
 
-# In[13]:
+# In[ ]:
 
 
 #TO Finish
@@ -243,7 +243,7 @@ def inputargs():#todo finish
     
 
 
-# In[14]:
+# In[ ]:
 
 
 # this function should return an random array with
@@ -258,7 +258,7 @@ def randArray(allPatches, patchPerPic):
     return patchRandArray
 
 
-# In[15]:
+# In[ ]:
 
 
 def returnPosFromNumberXY(xMax,yMax, pos): #should return one coordinat in x and y cunts up from 0 to pos-1
@@ -274,7 +274,7 @@ def returnPosFromNumberXY(xMax,yMax, pos): #should return one coordinat in x and
     return x,y
 
 
-# In[16]:
+# In[ ]:
 
 
 #piccc = readThePicture('/home/nico/programm/MdataPicPrep/sdrOut/000000.png')
@@ -288,7 +288,7 @@ def returnPosFromNumberXY(xMax,yMax, pos): #should return one coordinat in x and
 
 
 
-# In[17]:
+# In[ ]:
 
 
 #---- input section
@@ -318,11 +318,16 @@ print(str(tokonvPic)+' pictures will be cut into patches')
 #scale factor for the low resolution is inputed
 factor = int(input('Scale factor for Ldr LR [default:2]: ') or "2")
 #asks for the px size of the high resolution pictures
-print('The first picture has the shape (y,x, color)'+str((readThePicture(path+str(os.listdir(path)[0]))).shape))
+fristPic = (readThePicture(path+str(os.listdir(path)[0])))
+print('The first picture has the shape (y,x, color)'+str(fristPic.shape))
 
-yaxis = int(input('Y Patch size from HDR HR Patch in py [default:840px]: ') or "420")
+fristPic
+xaxis = (int(int(fristPic.shape[1])/420))*420
+yaxis = (int(int(fristPic.shape[0])/420))*420
+
+yaxis = int(input('Y Patch size from HDR HR Patch in py [default: '+str(yaxis)+' pixel]: ') or yaxis)
 print(yaxis)
-xaxis = int(input('X Patch size from HDR HR Patch in px [default:420px]: ') or "840")
+xaxis = int(input('X Patch size from HDR HR Patch in px [default: '+str(xaxis)+' pixel]: ') or xaxis)
 print(xaxis)
 
 toneMapper = int(input('Wich tonemapper should be used: 0:reinhard, 1:mantiuk, 2:drago, 3>=: random: default:0') or "0")
@@ -372,7 +377,7 @@ if ((input('do you want to know all patches possible? default: no') or 'no')!='n
 patchAmount = input('How many patches do you want to cut out of each Picture? default: 3- ') or '3'
 
 
-# In[18]:
+# In[ ]:
 
 
 start_time = time.time() #start the timeing of the Prgramm
@@ -413,10 +418,18 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
             he = (path+str(currentFile))#gives the path and name with extention of the to process file
             print('processing the picture: '+he) #prints it to the user
             originalPicture = readThePicture(he) #reads the currentpicture and saves it y,x
+            
+            ##### Resizes the Picture to fit mutible of 420
+            xSize = (int(int(originalPicture.shape[1])/420))*420
+            print('x'+str(xSize))
+            ySize = int(originalPicture.shape[0]/420)*420
+            print('y'+str(ySize))
+            originalPicture = cv2.resize(originalPicture,(xSize,ySize), interpolation = cv2.INTER_AREA)
+            
             #print(originalPicture.shape)
             #originalPicture = np.reshape(originalPicture,(int(originalPicture.shape[1]),int(originalPicture.shape[0]),int(originalPicture.shape[2]))) #rearanging in XYC
             pyx=patchesyx(originalPicture,yaxis,xaxis) # gives back the length of the current picture (numx,numy) e.g. (3,2)
-            #print('YX'+str(pyx))
+            print('YX'+str(pyx))
             px= pyx[1] #saves the max x pos in px
             py= pyx[0] #saves the max y pos in py
             patchCuts = randArray((px*py),int(patchAmount))# returns a array with amount patchAmount and the random positions to cut
@@ -638,7 +651,7 @@ print(str((time.time() - start_time)/60)+' Minutes') #outputs the time in minute
 print('------------------------- Done --------------------')
 
 
-# In[19]:
+# In[ ]:
 
 
 #ab = readThePicture('/Users/littledragon/Documents/BA 13022020/programme/MdataPicPrep/sdrOut/000003.png')
@@ -658,7 +671,7 @@ print('------------------------- Done --------------------')
 #hdr_png_yuv_b.max()
 
 
-# In[20]:
+# In[ ]:
 
 
 #hdr_png = hdr*((2**10)-1)
