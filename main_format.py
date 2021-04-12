@@ -63,12 +63,38 @@ def tMO(file,name): #tonemapping the file
             bias=0.85
             gamma=2.0
             tmo = cv2.createTonemapDrago(saturation=saturation, bias=bias, gamma=gamma)
-       # if (name == 'linear'):
-        #    tom = cv2.createTonemap()
+        if (name == 'linear'):
+            print('Linear')
+            gamma=2.0
+            tmo = cv2.createTonemap(gamma=gamma)
     except: 
         print('ToneMapping Error')
     ldr = tmo.process(file)
     return ldr
+
+
+# In[ ]:
+
+
+def Randtone_map(choose):
+        #a random tonemapping is returned
+        rand = random.SystemRandom()
+        if (choose >= 4):
+            tmNumber = round((rand.randint(0, 30)/10)) # generates a random tonempaiing nuber
+        else:
+            tmNumber = choose
+        try:
+            if (tmNumber<=0):
+                return 'reinhard' #retruns the name of the tonemapper
+            if (tmNumber==1):
+                return 'mantiuk'
+            if (tmNumber==2):
+                return 'drago'
+            if (tmNumber>=3):
+                return 'linear'
+        except:
+            print('there was an tmo Error')
+#ToDo Output in CSV to later analize
 
 
 # In[ ]:
@@ -117,30 +143,6 @@ def cutPatchxy(begX,endX,begY,endY,picyx):#cuts out a array of a given array
     except:
         print('FormatMaking Failed')
     return picyx #returns a small part of the pic file
-
-
-# In[ ]:
-
-
-def Randtone_map(choose):
-        #a random tonemapping is returned
-        rand = random.SystemRandom()
-        if (choose >= 3):
-            tmNumber = round((rand.randint(0, 20)/10)) # generates a random tonempaiing nuber
-        else:
-            tmNumber = choose
-        try:
-            if (tmNumber<=0):
-                return 'reinhard' #retruns the name of the tonemapper
-            if (tmNumber==1):
-                return 'mantiuk'
-            if (tmNumber>=2):
-                return 'drago'
-           # if (tmNumber>=3):
-            #    return 'linear'
-        except:
-            print('there was an tmo Error')
-#ToDo Output in CSV to later analize
 
 
 # In[ ]:
@@ -305,7 +307,7 @@ path = input('Where is the Path to the pictures (should be .hdr) [default: ./hdr
 if not os.path.exists(path):
         os.mkdir(path)
 print(path)
-inhalte = (os.listdir(path)) #list of all files in path
+
 amountOfPictures = 0
 
 keepFileName = input('Do you want to keep the original filename? default: no ') or 'no'
@@ -324,13 +326,13 @@ print('The first picture has the shape (y,x, color)'+str(fristPic.shape))
 fristPic
 xaxis = (int(int(fristPic.shape[1])/420))*420
 yaxis = (int(int(fristPic.shape[0])/420))*420
-
+print('Files will be scaled not cut. :)')
 yaxis = int(input('Y Patch size from HDR HR Patch in py [default: '+str(yaxis)+' pixel]: ') or yaxis)
 print(yaxis)
 xaxis = int(input('X Patch size from HDR HR Patch in px [default: '+str(xaxis)+' pixel]: ') or xaxis)
 print(xaxis)
 
-toneMapper = int(input('Wich tonemapper should be used: 0:reinhard, 1:mantiuk, 2:drago, 3>=: random: default:0') or "0")
+toneMapper = int(input('Wich tonemapper should be used: 0:reinhard, 1:mantiuk, 2:drago, 3:linear, 4>=: random: default:0') or "0")
 
 #user can choose if the pacht-pictures should be in YU-V or RGB
 youWantYUV = input('Do you want to convert to yuv default: no ') or 'no'
@@ -358,23 +360,26 @@ if (jsi != 'no'):
     
 if (savein == 'p' or savein == 'mp' or savein == 'm'): #if user wants to output pates in picters he can choose where
     outPathsdr = input('spezify the output path of sdr pictures [default: ./sdrOut/ ] ') or './sdrOut/' #set the picture save path if it is choosen
+    rgb_sdr  = outPathsdr+'rgb/'
+    outPathsdr = outPathsdr+'YUV/'
+    
     if not os.path.exists(outPathsdr):
             os.mkdir(outPathsdr)
-    rgb_sdr  = outPathsdr+'rgb/'
+
     if not os.path.exists(rgb_sdr):
             os.mkdir(rgb_sdr)
+            
     outPathhdr = input('spezify the output path of sdr pictures [default: ./hdrOut/ ] ') or './hdrOut/' #set the picture save path if it is choosen
+    rgb_hdr  = outPathhdr+'rgb/'
+    outPathhdr = outPathhdr+'YUV/'
+
     if not os.path.exists(outPathhdr):
         os.mkdir(outPathhdr)
-    rgb_hdr  = outPathhdr+'rgb/'    
     if not os.path.exists(rgb_hdr):
         os.mkdir(rgb_hdr)
-
-        #TO DO if files should all have the same name or original Filename
-inhalte
 if ((input('do you want to know all patches possible? default: no') or 'no')!='no'):
     allpatches = totalpatchespossible(path,amountOfPictures,extention,xaxis,yaxis,tokonvPic)  #calc all output patches
-patchAmount = input('How many patches do you want to cut out of each Picture? default: 3- ') or '3'
+patchAmount = input('How many patches do you want to cut out of each Picture? default: 1 ') or '1'
 
 
 # In[ ]:
@@ -421,15 +426,15 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
             
             ##### Resizes the Picture to fit mutible of 420
             xSize = (int(int(originalPicture.shape[1])/420))*420
-            print('x'+str(xSize))
+            #print('x'+str(xSize))
             ySize = int(originalPicture.shape[0]/420)*420
-            print('y'+str(ySize))
+            #print('y'+str(ySize))
             originalPicture = cv2.resize(originalPicture,(xSize,ySize), interpolation = cv2.INTER_AREA)
             
             #print(originalPicture.shape)
             #originalPicture = np.reshape(originalPicture,(int(originalPicture.shape[1]),int(originalPicture.shape[0]),int(originalPicture.shape[2]))) #rearanging in XYC
             pyx=patchesyx(originalPicture,yaxis,xaxis) # gives back the length of the current picture (numx,numy) e.g. (3,2)
-            print('YX'+str(pyx))
+            #print('YX'+str(pyx))
             px= pyx[1] #saves the max x pos in px
             py= pyx[0] #saves the max y pos in py
             patchCuts = randArray((px*py),int(patchAmount))# returns a array with amount patchAmount and the random positions to cut
@@ -452,7 +457,7 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
                 #print(px,py,begx,begy)
                 
                 patch = cutPatchxy(px,begx,py,begy,originalPicture) #begX,endX,begY,endY,picyxmake the patch and return it to the patch (floart64) array
-                print(patch.shape)
+                #print(patch.shape)
                 ###choose your option
                 #HDR original with float32
                 hdr = patch
@@ -606,7 +611,7 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
             print(str(png_lr_tmo.shape)+' sdrPatchShape')  
         except:
             print('Error with data maybe not an .hdr file continuing...')
-    print(str((time.time() - start_time)/60)+' Minutes to patch nr: '+str(allpatches)) #outputs the time in minutes    
+    print(str((time.time() - start_time)/60)+' Minutes have pased and '+str(allpatches)' patches togo :)') #outputs the time in minutes    
     amountOfPictures = amountOfPictures - 1 #counts down current picture pos
     
 if (savein == 'mp' or savein == 'm' ): #only makes a Matlap File if wanted
