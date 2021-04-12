@@ -611,7 +611,7 @@ while (amountOfPictures > tokonvPic):#tokonvPic): #filling Array with pachtes fr
             print(str(png_lr_tmo.shape)+' sdrPatchShape')  
         except:
             print('Error with data maybe not an .hdr file continuing...')
-    print(str((time.time() - start_time)/60)+' Minutes have pased and '+str(allpatches)' patches togo :)') #outputs the time in minutes    
+    print(str((time.time() - start_time)/60)+' Minutes have pased and '+str(allpatches)+' patches togo :)') #outputs the time in minutes    
     amountOfPictures = amountOfPictures - 1 #counts down current picture pos
     
 if (savein == 'mp' or savein == 'm' ): #only makes a Matlap File if wanted
